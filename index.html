@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Poker Field Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --surface: #ffffff;
+    --border: #ddd8cf;
+    --text: #1a1714;
+    --text2: #5a534a;
+    --text3: #8a7f72;
+    --radius: 10px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+    --icm: #b5451b;
+    --icm-light: #fdf0eb;
+    --gto: #2c5282;
+    --gto-light: #ebf4ff;
+    --tells: #7b2d52;
+    --tells-light: #fdf5f8;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    padding: 40px 24px 32px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .site-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+
+  .site-title {
+    font-family: var(--serif);
+    font-size: clamp(26px, 6vw, 36px);
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .site-subtitle {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.5;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  main {
+    flex: 1;
+    padding: 32px 20px 48px;
+    max-width: 760px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  @media (min-width: 600px) {
+    .cards { flex-direction: row; align-items: stretch; }
+    .card { flex: 1; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+  }
+
+  .card-stripe { height: 5px; width: 100%; }
+  .card--icm .card-stripe { background: var(--icm); }
+  .card--gto .card-stripe { background: var(--gto); }
+  .card--tells .card-stripe { background: var(--tells); }
+
+  .card-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .card-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .card--icm .card-badge { background: var(--icm-light); color: var(--icm); border: 1px solid rgba(181,69,27,0.25); }
+  .card--gto .card-badge { background: var(--gto-light); color: var(--gto); border: 1px solid rgba(44,82,130,0.25); }
+  .card--tells .card-badge { background: var(--tells-light); color: var(--tells); border: 1px solid rgba(123,45,82,0.25); }
+
+  .card-status {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--text3);
+  }
+  .card-status.live::before { content: '●'; margin-right: 4px; color: #48bb78; }
+
+  .card-title {
+    font-family: var(--serif);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 8px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.55;
+    flex: 1;
+    margin-bottom: 18px;
+  }
+
+  .card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 2px 7px;
+    background: #f0ece5;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text2);
+  }
+
+  .card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: opacity 0.15s;
+  }
+  .card-cta:hover { opacity: 0.88; }
+  .card-cta .arrow { font-size: 16px; }
+  .card--icm .card-cta { background: var(--icm); color: white; }
+  .card--gto .card-cta { background: var(--gto); color: white; }
+  .card--tells .card-cta { background: var(--tells); color: white; }
+
+  footer {
+    text-align: center;
+    padding: 24px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--border);
+    line-height: 2;
+  }
+  footer em { font-style: italic; color: var(--text2); }
+  footer a { color: var(--text3); text-decoration: none; }
+  footer a:hover { color: var(--text2); }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="site-eyebrow">Tournament Poker · Field Reference Suite</p>
+  <h1 class="site-title">Poker Field Guide</h1>
+  <p class="site-subtitle">Mobile-first tournament reference tools. Built for breaks, flights, and table talk.</p>
+</header>
+
+<main>
+  <p class="section-label">Reference Tools</p>
+
+  <div class="cards">
+
+    <!-- ICM Reference -->
+    <a class="card card--icm" href="./icm/" target="_blank">
+      <div class="card-stripe"></div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="card-badge">ICM</span>
+          <span class="card-status live">Live</span>
+        </div>
+        <h2 class="card-title">Endgame Poker Strategy</h2>
+        <p class="card-desc">ICM fundamentals, bubble factor, stack dynamics, and final table adjustments. Tournament survival and chip value strategy.</p>
+        <div class="card-tags">
+          <span class="tag">Bubble Factor</span>
+          <span class="tag">Stack Play</span>
+          <span class="tag">Final Table</span>
+          <span class="tag">Laddering</span>
+        </div>
+        <div class="card-cta">
+          <span>Open Reference</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Modern Poker Theory -->
+    <a class="card card--gto" href="./modern-theory/" target="_blank">
+      <div class="card-stripe"></div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="card-badge">GTO</span>
+          <span class="card-status live">Live</span>
+        </div>
+        <h2 class="card-title">Modern Poker Theory</h2>
+        <p class="card-desc">GTO vs exploitative play, range construction, flop/turn/river strategy, and tournament fundamentals. Adapted from Acevedo.</p>
+        <div class="card-tags">
+          <span class="tag">GTO Principles</span>
+          <span class="tag">Exploitation</span>
+          <span class="tag">Post-Flop</span>
+          <span class="tag">Pre-Flop</span>
+        </div>
+        <div class="card-cta">
+          <span>Open Reference</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+    <!-- Poker Tells -->
+    <a class="card card--tells" href="./tells/" target="_blank">
+      <div class="card-stripe"></div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="card-badge">TELLS</span>
+          <span class="card-status live">Live</span>
+        </div>
+        <h2 class="card-title">Reading Poker Tells</h2>
+        <p class="card-desc">Live reads, behavioral patterns, fear vs relaxation framework, and verbal tells. Reading the humans at the table. Adapted from Elwood.</p>
+        <div class="card-tags">
+          <span class="tag">Waiting Tells</span>
+          <span class="tag">Bet Timing</span>
+          <span class="tag">Post-Bet</span>
+          <span class="tag">Verbal Tells</span>
+        </div>
+        <div class="card-cta">
+          <span>Open Reference</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+
+  </div>
+</main>
+
+<footer>
+  Poker Field Guide · Personal Reference Suite<br>
+  <em>Endgame Poker Strategy</em> content © respective authors &nbsp;·&nbsp;
+  <em>Modern Poker Theory</em> © Michael Acevedo &nbsp;·&nbsp;
+  <em>Reading Poker Tells</em> © Zachary Elwood<br>
+  Compiled and adapted with <a href="https://claude.ai" target="_blank">Claude</a> by Anthropic
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Endgame Poker — ICM Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --surface: #ffffff;
+    --surface2: #f0ece5;
+    --border: #ddd8cf;
+    --text: #1a1714;
+    --text2: #5a534a;
+    --text3: #8a7f72;
+    --accent: #b5451b;
+    --accent2: #7a2e10;
+    --accent-light: #fdf0eb;
+    --green: #2d6a4f;
+    --green-light: #e8f5ef;
+    --drawer-w: 290px;
+    --header-h: 56px;
+    --radius: 8px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin: -8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.25s ease;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .header-title {
+    flex: 1;
+    min-width: 0;
+  }
+  .header-title h1 {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  .header-title p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .header-badge {
+    background: var(--accent);
+    color: white;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  .expand-all-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 4px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .expand-all-btn:hover {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .expand-all-btn.all-expanded {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── OVERLAY ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,23,20,0.45);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  /* ── DRAWER ── */
+  .drawer {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--drawer-w);
+    background: var(--surface);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    background: var(--surface);
+  }
+  .drawer-header h2 {
+    font-family: var(--serif);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .drawer-header p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .drawer-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Chapter group */
+  .nav-chapter {
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-chapter:last-child { border-bottom: none; }
+
+  .nav-chapter-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .nav-chapter-btn:hover { background: var(--surface2); }
+  .nav-chapter-btn.active { background: var(--accent-light); }
+
+  .nav-ch-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(181,69,27,0.2);
+  }
+  .nav-ch-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.3;
+  }
+  .nav-ch-arrow {
+    font-size: 12px;
+    color: var(--text3);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .nav-chapter-btn.expanded .nav-ch-arrow { transform: rotate(90deg); }
+
+  /* Section items */
+  .nav-sections {
+    display: none;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+  .nav-sections.open { display: block; }
+
+  .nav-section-link {
+    display: block;
+    padding: 9px 18px 9px 40px;
+    font-size: 12.5px;
+    color: var(--text2);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.15s;
+    line-height: 1.35;
+  }
+  .nav-section-link:last-child { border-bottom: none; }
+  .nav-section-link:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding-left: 44px;
+  }
+  .nav-section-link::before {
+    content: '›';
+    margin-right: 6px;
+    color: var(--accent);
+    opacity: 0.6;
+  }
+
+  /* ── MAIN CONTENT ── */
+  main {
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 60px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Chapter block */
+  .chapter {
+    margin-bottom: 32px;
+  }
+
+  .chapter-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .chapter-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid rgba(181,69,27,0.25);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .chapter-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+  }
+
+  /* Section block */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .section-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 14px;
+    text-align: left;
+    transition: background 0.15s;
+    gap: 10px;
+  }
+  .section-toggle:hover { background: var(--surface2); }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .section-arrow {
+    font-size: 14px;
+    color: var(--text3);
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+  }
+  .section.open .section-arrow { transform: rotate(180deg); }
+  .section.open .section-toggle { background: var(--accent-light); }
+  .section.open .section-label { color: var(--accent2); }
+
+  .section-body {
+    display: none;
+    padding: 4px 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .section.open .section-body { display: block; }
+
+  /* Bullet list */
+  .bullets {
+    list-style: none;
+    padding: 0;
+  }
+  .bullets li {
+    position: relative;
+    padding: 5px 0 5px 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .bullets li:last-child { border-bottom: none; }
+  .bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 13px;
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    opacity: 0.7;
+  }
+
+  /* Sub-bullets */
+  .bullets .sub {
+    padding-left: 28px;
+    font-size: 13px;
+    color: var(--text2);
+  }
+  .bullets .sub::before {
+    left: 14px;
+    width: 4px; height: 4px;
+    background: var(--text3);
+    opacity: 1;
+  }
+
+  /* Key rule highlight */
+  .key-rule {
+    background: var(--green-light);
+    border-left: 3px solid var(--green);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.45;
+  }
+
+  /* Warning rule */
+  .warn-rule {
+    background: var(--accent-light);
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent2);
+    line-height: 1.45;
+  }
+
+  /* Scroll target offset */
+  .scroll-target {
+    scroll-margin-top: calc(var(--header-h) + 12px);
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    padding: 20px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--border);
+    max-width: 680px;
+    margin: 0 auto;
+  }
+</style>
+</head>
+<body>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay"></div>
+
+<!-- HEADER -->
+<header>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="header-title">
+    <h1>Endgame Poker Strategy</h1>
+    <p>ICM Reference</p>
+  </div>
+  <button class="expand-all-btn" id="expandAllBtn" onclick="toggleExpandAll()">EXPAND ALL</button>
+  <div class="header-badge">ICM</div>
+</header>
+
+<!-- DRAWER -->
+<nav class="drawer" id="drawer" aria-label="Chapters">
+  <div class="drawer-header">
+    <h2>Endgame Poker</h2>
+    <p>ICM Field Reference</p>
+  </div>
+  <div class="drawer-nav" id="drawerNav"></div>
+</nav>
+
+<!-- MAIN -->
+<main id="main"></main>
+
+<footer>Endgame Poker Strategy · ICM Reference · Field Edition</footer>
+
+<script>
+const DATA = [
+  {
+    id: 'ch1',
+    num: 'CH 1',
+    title: 'What is ICM?',
+    sections: [
+      {
+        id: 'ch1s1',
+        label: 'Definition & Purpose',
+        content: [
+          { type: 'bullet', text: 'ICM = Independent Chip Model: a formula to assess your <em>real money equity</em> in a tournament' },
+          { type: 'bullet', text: 'In cash games, chips have a direct 1:1 monetary value (ChipEV). ICM gives an approximation of the cash value of your chips in tournaments.' },
+          { type: 'key', text: 'You never win more than you risk — one player always risks more than the other.' },
+        ]
+      },
+      {
+        id: 'ch1s2',
+        label: 'Areas ICM Influences',
+        content: [
+          { type: 'bullet', text: 'Starting hands you should play' },
+          { type: 'bullet', text: 'Bet sizing' },
+          { type: 'bullet', text: 'When to register / whether to rebuy' },
+          { type: 'bullet', text: 'Markup for staking' },
+          { type: 'bullet', text: 'Postflop play' },
+          { type: 'bullet', text: 'Which players to target or avoid' },
+          { type: 'bullet', text: 'How fast to play / when to stall' },
+          { type: 'bullet', text: 'Percentage swaps, final table deals, chop amounts' },
+          { type: 'bullet', text: 'How tight to call on bubbles and pay jumps' },
+          { type: 'warn', text: 'Remaining players — even those not at your table — influence the action.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch2',
+    num: 'CH 2',
+    title: 'ICM in 30 Minutes',
+    sections: [
+      {
+        id: 'ch2s1',
+        label: 'Tighten Your Calling Range',
+        content: [
+          { type: 'bullet', text: 'Play tighter in tournaments than in cash games — you need to win more often to justify the risk' },
+          { type: 'bullet', text: 'Shave off the bottom of your range, especially when <em>calling</em>' },
+          { type: 'key', text: 'Near the bubble: dramatically tighten your calling range. Consider QQ+ and AKs only on the literal bubble.' },
+          { type: 'bullet', text: 'Small pairs lose value dramatically the closer you get to the money — they realize equity poorly and rarely get implied odds in shallow stacks' },
+          { type: 'warn', text: 'Almost never get in coin flips in the late stages of a tournament.' },
+        ]
+      },
+      {
+        id: 'ch2s2',
+        label: 'Hand Value Changes',
+        content: [
+          { type: 'bullet', text: 'Blockers go up in value — make up for small pair removal by adding more hands that block big hands' },
+          { type: 'bullet', text: 'Suited aces and suited broadway hands go up in value in late stages — tighter calling ranges mean your A or K in hand gets 30% more folds' },
+          { type: 'bullet', text: 'Suited hands preferred over offsuit — gives outs when called and possibly dominated' },
+          { type: 'bullet', text: 'K9s, QTs have ½ or ¼ of a blocker; best in late position (raise early = likely dominated)' },
+          { type: 'warn', text: 'If you get reraised and have chips behind, fold.' },
+        ]
+      },
+      {
+        id: 'ch2s3',
+        label: 'Stack Dynamics & Coverage',
+        content: [
+          { type: 'bullet', text: '<strong>Who covers whom is critical</strong> — the closer to the money, the more significant elimination risk becomes' },
+          { type: 'bullet', text: 'Against a player you <em>cover</em>: play wider, be more aggressive, take them off pots' },
+          { type: 'key', text: 'If you are the covered player: play passively, pot control, avoid thin value bets, fold hands you\'d call in cash games.' },
+          { type: 'bullet', text: 'The bigger your stack, the more aggressive you can be' },
+          { type: 'bullet', text: 'Very short stack? Target the <em>next shortest player</em> to steal from — not the big stack' },
+          { type: 'bullet', text: 'Narrow your range as the short stack. The fewer chips you have, the more they are worth to you.' },
+          { type: 'warn', text: 'As short stack: do not gamble. Do not expect to intimidate many people.' },
+        ]
+      },
+      {
+        id: 'ch2s4',
+        label: 'Bubble & Final Table Adjustments',
+        content: [
+          { type: 'bullet', text: 'ICM is most extreme on the money bubble and final table bubble' },
+          { type: 'warn', text: 'On the bubble: there are spots where KK is a fold and AKs is an easy fold.' },
+          { type: 'bullet', text: 'As a big stack: exploit tightness aggressively. Extend the bubble to pick up small pots from players hanging on.' },
+          { type: 'bullet', text: '2nd most extreme: final table bubble (pay jumps get bigger with each elimination)' },
+          { type: 'bullet', text: 'ICM becomes less extreme with each elimination at the final table — play looser after each knockout' },
+          { type: 'bullet', text: 'Flat payouts or a micro/mega stack: play tighter. If the micro stack guarantees your pay jump, do not bust before them.' },
+          { type: 'key', text: 'Heads up: no ICM. This is the only time you play 100% ChipEV. Take every small edge.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch3',
+    num: 'CH 3',
+    title: 'Bubble Factor',
+    sections: [
+      {
+        id: 'ch3s1',
+        label: 'What is Bubble Factor?',
+        content: [
+          { type: 'bullet', text: 'Losing hurts more than winning feels good — equity you risk is always more than equity you stand to gain' },
+          { type: 'bullet', text: 'Bubble factor = a premium on the equity you need to play a hand, based on real money equity risked vs. won' },
+          { type: 'bullet', text: 'Remaining equity from eliminations is distributed amongst other players based on stack size' },
+          { type: 'key', text: 'Applies to every decision in the tournament except heads up. Develop an instinct for it.' },
+          { type: 'bullet', text: 'Also called "tournament life factor"' },
+        ]
+      },
+      {
+        id: 'ch3s2',
+        label: 'Two Key Factors',
+        content: [
+          { type: 'bullet', text: '<strong>Factor 1 — ICM & Payouts:</strong> Closer to the money + steeper payout structure = bigger bubble factor' },
+          { type: 'bullet', text: '<strong>Factor 2 — Relative Stack Sizes:</strong> The difference between your stack and opponents determines how much bubble factor governs your decision' },
+          { type: 'bullet', text: 'When 2 players get it all-in, equity of all other players increases (even if no elimination)' },
+          { type: 'warn', text: 'The closer to the bubble, the more equity you need to call if you risk elimination.' },
+        ]
+      },
+      {
+        id: 'ch3s3',
+        label: 'Stack Size Implications',
+        content: [
+          { type: 'bullet', text: '<strong>Chip leader:</strong> Low bubble factor vs. shorter stacks. Can exert pressure. But big stack vs. big stack requires 70%+ equity — sometimes fold KK.' },
+          { type: 'bullet', text: '<strong>Short stack:</strong> Low bubble factor across the board — losing means elimination regardless. Should target other short stacks.' },
+          { type: 'bullet', text: '<strong>Medium stack:</strong> Highest average bubble factor at the table. Does NOT want to go against big or medium stacks. Disaster to bust and allow shorter stack to ladder.' },
+          { type: 'key', text: 'Once bubble factor exceeds 1.5, it has a significant impact on equity needed to call an all-in.' },
+          { type: 'bullet', text: 'The closer bubble factor gets to 1, the more it becomes a pure pot odds spot — everyone can call wide against a micro stack' },
+          { type: 'warn', text: 'When a micro stack is NOT in the hand, everyone\'s bubble factor goes up significantly. Call much tighter.' },
+        ]
+      },
+      {
+        id: 'ch3s4',
+        label: 'Payout Structure Impact',
+        content: [
+          { type: 'bullet', text: '<strong>Top-heavy payouts:</strong> Bubble factor comes down. Taking risks for 1st becomes more important. Closer to ChipEV.' },
+          { type: 'bullet', text: '<strong>Flat payouts:</strong> More extreme ICM, more important to ladder. Medium vs medium stacks have even higher bubble factors.' },
+          { type: 'bullet', text: 'Flat structure: 2nd in chips vs chip leader needs 80%+ equity — only aces in range' },
+          { type: 'warn', text: 'Satellites: extreme bubble factors. The smaller the pay jump, the greater the ICM. Call tighter like a flat payout.' },
+          { type: 'bullet', text: 'Bubble factor drops steeply once everyone is in the money, then rises steeply before the final table' },
+        ]
+      },
+      {
+        id: 'ch3s5',
+        label: 'Strategic Use of Bubble Factor',
+        content: [
+          { type: 'bullet', text: 'Who you face is as important as the ICM implications of the payout structure' },
+          { type: 'bullet', text: '<strong>Big stack:</strong> Be aggressive against big and medium stacks — just don\'t call them all-in with a weak range' },
+          { type: 'bullet', text: '<strong>Short stack:</strong> Stay out of the way of bigger stacks. Target vulnerable stacks most likely to fold.' },
+          { type: 'key', text: 'It is in the chip leader\'s best interest to keep the short stack alive — use short stack presence to take down more uncontested pots.' },
+          { type: 'bullet', text: 'When bubble factors are high: call tight, but exploit others with aggression' },
+          { type: 'bullet', text: 'Use ICM calculators away from the table to develop a sixth sense for bubble factors' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch4',
+    num: 'CH 4',
+    title: 'Diminishing Value of Chips',
+    sections: [
+      {
+        id: 'ch4s1',
+        label: 'The Core Concept',
+        content: [
+          { type: 'bullet', text: 'The more chips you have, the less each chip is worth' },
+          { type: 'bullet', text: 'Punishment factor: chip leader wins most often, but gets least additional equity for each chip won' },
+          { type: 'warn', text: 'A small mistake in late stages (shallow stacks) is far more costly than the same error early — each chip is worth much more.' },
+          { type: 'key', text: 'Understanding ICM and shallow stack play (40bb and under) is more important than deep stack poker. Study both together.' },
+        ]
+      },
+      {
+        id: 'ch4s2',
+        label: 'Late Registration Strategy',
+        content: [
+          { type: 'bullet', text: 'When you register late, you get an immediate ICM boost — more players eliminated = closer to money' },
+          { type: 'key', text: 'If you had a policy of only registering late, it may have the biggest single impact on your bottom line of any advice in the book.' },
+          { type: 'bullet', text: 'Must know how to play shallow stacks, have a good mental game and bankroll management to exploit this' },
+          { type: 'bullet', text: 'If you have an edge on the field → start at the beginning. If bad structure / less edge → register late.' },
+          { type: 'bullet', text: 'A shallow stack (15bb or less) is more profitable than a playable stack (20-30bb) when late registering (same starting stack)' },
+          { type: 'bullet', text: 'Smaller field or flatter payout structure = bigger equity boost from late registering' },
+        ]
+      },
+      {
+        id: 'ch4s3',
+        label: 'Rebuy Tournaments',
+        content: [
+          { type: 'key', text: 'Always buy the max. Instantly unprofitable if you don\'t buy in for the max.' },
+          { type: 'bullet', text: 'Late register for rebuy tournaments and stall until the add-on period' },
+        ]
+      },
+      {
+        id: 'ch4s4',
+        label: 'Short Stack Chip Management',
+        content: [
+          { type: 'bullet', text: 'Play much tighter with a short stack — each chip is worth much more to you when you have fewer' },
+          { type: 'bullet', text: 'Still take the next profitable spot — don\'t blind down so low you lose fold equity' },
+          { type: 'warn', text: 'Biggest error as a short stack: bleeding chips with speculative hands.' },
+          { type: 'bullet', text: 'Switch to blocker/high suited card type hands; target other short stacks' },
+          { type: 'key', text: 'Getting to the next pay jump is a massive boost to your overall equity.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch5',
+    num: 'CH 5',
+    title: 'Laddering vs Playing for the Win',
+    sections: [
+      {
+        id: 'ch5s1',
+        label: 'The Two Fallacies',
+        content: [
+          { type: 'bullet', text: '<strong>Fallacy 1 — Playing for the Win:</strong> Needlessly aggressive, "ICM punts," playing as if it\'s a ChipEV winner-takes-all tournament' },
+          { type: 'bullet', text: '<strong>Fallacy 2 — Over-Valuing Laddering:</strong> Decisions based on what money amounts mean personally, not current equity' },
+          { type: 'warn', text: 'One makes you too loose, the other makes you too tight. Look at the difference between current payout and next ladder — not the overall pay jump.' },
+          { type: 'bullet', text: 'Bad tight players do better than bad loose players. Good tight > good loose. LAGs have biggest wins but most losses. TAGs earn steady money.' },
+          { type: 'key', text: 'Final tables are not about hero calls. They\'re about making as few mistakes as possible.' },
+        ]
+      },
+      {
+        id: 'ch5s2',
+        label: 'Short Stack Checklist',
+        content: [
+          { type: 'key', text: '1) Only call with strong hands' },
+          { type: 'key', text: '2) Push a wider range in late position, ideally with blocker hands' },
+          { type: 'key', text: '3) Target players who would be most hurt by you — avoid players with nothing to lose' },
+          { type: 'bullet', text: '2 most important factors for accumulating chips as a short stack: position and blockers' },
+          { type: 'bullet', text: 'Button: only 2 players behind — push a wide range, get many folds, called by wider range too' },
+          { type: 'bullet', text: 'Push with A + bad kicker over a small pair in late stages — card removal effect is powerful' },
+          { type: 'bullet', text: 'Target players with similar stack sizes — they must call with more equity, so you get more folds' },
+        ]
+      },
+      {
+        id: 'ch5s3',
+        label: 'When to Pass on Profitable Spots',
+        content: [
+          { type: 'bullet', text: 'Good players can pass on high-variance profitable spots if they can exploit better spots later without flipping' },
+          { type: 'bullet', text: 'Comfortable chip lead + marginally profitable spot that could leave you short → pass it' },
+          { type: 'bullet', text: 'You have position on the chip leader or best player → pass on some marginal hands (fortuitous spot)' },
+          { type: 'bullet', text: 'Particularly bad player at the table with lots of chips → fold close ones against others, wait for them' },
+          { type: 'bullet', text: 'Slow tournament structure → time is on your side, pass marginal spots' },
+        ]
+      },
+      {
+        id: 'ch5s4',
+        label: 'When to Take the Spot',
+        content: [
+          { type: 'key', text: 'If a hand makes more than 10% of what AA would make, you cannot fold it. (AQo = call, KQo = fold)' },
+          { type: 'bullet', text: 'Weaker player should gamble a bit more — best shot at a bigger payout and busting a superior player' },
+          { type: 'bullet', text: 'You\'re the worst player and/or OOP to the best players → take any profitable spot you can' },
+          { type: 'bullet', text: 'Calling and winning would eliminate the best player → don\'t pass up a profitable spot' },
+          { type: 'warn', text: 'Fast turbo structure: NEVER fold a profitable spot — you\'ll blind away waiting for a better one. There is also an argument for taking a minus EV spot if you are outmatched.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch6',
+    num: 'CH 6',
+    title: 'ICM Changes the Shape of Your Range',
+    sections: [
+      {
+        id: 'ch6s1',
+        label: 'Fewer Hands, Different Hands',
+        content: [
+          { type: 'bullet', text: 'ICM forces fewer hands AND changes the type of hands you play — it\'s not just playing less' },
+          { type: 'bullet', text: 'Some technically weaker hands do better in ICM-heavy situations than stronger hands you should throw away' },
+          { type: 'bullet', text: 'Small pairs and weaker broadway hands are replaced with suited broadway hands, even with gapper/kicker problems' },
+        ]
+      },
+      {
+        id: 'ch6s2',
+        label: 'Preferred Hand Types in ICM',
+        content: [
+          { type: 'bullet', text: '<strong>Blockers:</strong> QJs, KTs, A5s all block AA, AK, AQ, KK, QQ, JJ, TT — valuable when player behind has a jamming stack' },
+          { type: 'bullet', text: '<strong>Hands that improve:</strong> A5s and QJs can make straight or flush when pair alone isn\'t enough' },
+          { type: 'bullet', text: 'ATo is missing from ranges — usually dominated and doesn\'t make straights often' },
+          { type: 'bullet', text: '44–66 in range but not 77–88: smaller pairs can win against unimproved AJ–AK, block straights with Ax, make straights/sets' },
+          { type: 'bullet', text: 'K4s: blocks AK/KK, can make strong top pair and flushes, enables natural bluffs (1 flush card flop, 2nd on turn = confident bluff continuation)' },
+          { type: 'key', text: 'Fold equity is critical in ICM spots — hands that allow profitable multi-street bluffs rank higher than small pairs with only 2 outs.' },
+          { type: 'bullet', text: 'Suited high card hands make great semi-bluffs' },
+        ]
+      },
+      {
+        id: 'ch6s3',
+        label: 'Stack-Based Range Adjustments',
+        content: [
+          { type: 'bullet', text: '<strong>Chip leader closing action (BB):</strong> Can call most hands, raise premiums + some Ax/Kx for balance. Each chip worth less → looser.' },
+          { type: 'bullet', text: '<strong>Covering player:</strong> Can be much more aggressive postflop without range or positional advantage' },
+          { type: 'bullet', text: '<strong>Vulnerable stacks:</strong> Tighter ranges; need a blocker in hand to even consider taking on the chip leader' },
+          { type: 'warn', text: 'Ranges tighten when the chip leader opens — serious threat of elimination. Who covers who shapes your entire range.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch8',
+    num: 'CH 8',
+    title: 'Some Mistakes Are Bigger Than Others',
+    sections: [
+      {
+        id: 'ch8s1',
+        label: 'Shoving Range Mistakes (Forgiving)',
+        content: [
+          { type: 'bullet', text: 'Getting shoving ranges wrong by one pip is rarely a big mistake' },
+          { type: 'bullet', text: 'Shoving K5o when correct bottom is KTo is only ~0.17% of prize pool error' },
+          { type: 'bullet', text: 'This is a function of fold equity — most profit from late position shoves comes when everyone folds' },
+          { type: 'bullet', text: 'Light shoves UTG are bigger mistakes — more players behind, less fold equity, need much more equity to shove UTG vs. BU' },
+          { type: 'key', text: 'AA is 5x more profitable as a call than a shove. 22 is 47x worse as a call due to fold equity as a shove. AQ is 2x+ more profitable as a shove than a call (blocker + decent equity).' },
+        ]
+      },
+      {
+        id: 'ch8s2',
+        label: 'Calling Range Mistakes (Very Costly)',
+        content: [
+          { type: 'warn', text: 'A calling mistake is far more impactful than a betting mistake. The same level of error with calling range can be 5, 10, or 20x more costly.' },
+          { type: 'bullet', text: 'A bad fold that should be in your calling range is also more impactful than a fold that should be in your shoving range' },
+          { type: 'bullet', text: 'Calling ranges are tighter (higher equity hands) — that\'s why mistakes are so much more impactful' },
+          { type: 'bullet', text: 'When there\'s an open then a shove: calling range is even tighter (top of range only). Getting the Ax vs pocket pair wrong here is especially costly.' },
+          { type: 'warn', text: 'Overcalling against 2 all-ins in heavy ICM situations: generally KK+ only. Compounding effect on mistake size.' },
+          { type: 'bullet', text: 'Flat payout structure: all aces become jams, smaller pairs lose value (unblock calling ranges, perform poorly when called). AKo fold, AKs barely profitable.' },
+        ]
+      },
+      {
+        id: 'ch8s3',
+        label: 'Key Principles',
+        content: [
+          { type: 'key', text: 'If in doubt: bad fold > bad call. It is better to make a bad fold than a bad call when you are risking your tournament life.' },
+          { type: 'key', text: 'A good call earns more than a good shove — you double your stack when you win, while a good shove wins a smaller pot.' },
+          { type: 'bullet', text: 'Blockers make shoves more profitable' },
+          { type: 'bullet', text: 'The tighter your range, the more a mistake compounds' },
+          { type: 'warn', text: 'Calling ranges are much more important to study than betting ranges.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch9',
+    num: 'CH 9',
+    title: 'Game Selection',
+    sections: [
+      {
+        id: 'ch9s1',
+        label: 'Field Size & Variance',
+        content: [
+          { type: 'bullet', text: 'Small poker rooms and satellite winner events are typically softer' },
+          { type: 'bullet', text: 'More players in a tournament = softer field. More players left = more bad players remain.' },
+          { type: 'bullet', text: 'Bad players\' mistakes are divided up among all winning players — bad players have a compounding effect on your equity' },
+          { type: 'key', text: 'Bigger field = bigger win rate, but also bigger variance. Variance and ROI are proportional.' },
+          { type: 'bullet', text: 'Bigger field = bigger sample size of tournaments needed to realize your edge' },
+          { type: 'bullet', text: 'Binking a large MTT is a springboard to higher stakes' },
+          { type: 'bullet', text: 'Specializing in smaller fields: better ICM skills, less variance, steadier mental game' },
+        ]
+      },
+      {
+        id: 'ch9s2',
+        label: 'Late Registration & Overlays',
+        content: [
+          { type: 'key', text: 'An overlay is an instant equity boost — seek out tournaments that might miss their guarantee.' },
+          { type: 'warn', text: 'Never late register PKOs (Progressive Knockout tournaments).' },
+          { type: 'bullet', text: 'The more players still in the tournament, the bigger your edge' },
+          { type: 'bullet', text: 'A shallow stack (15bb or less) when late registering is more profitable than a playable stack (20–30bb), assuming same starting stack' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch10',
+    num: 'CH 10',
+    title: 'Short Stack Play',
+    sections: [
+      {
+        id: 'ch10s1',
+        label: 'Shoving Ranges',
+        content: [
+          { type: 'bullet', text: 'Equal stacks at final table (MP shove, ~23.7%): 22+, A2s+, A9o+, A5, K4s+, KTo, Q9s+, QTo+' },
+          { type: 'bullet', text: 'If covered (MP shove, ~18.8%): tighter shoving range because you\'re covered — position and stack size drive calling ranges' },
+          { type: 'bullet', text: 'Around 5bb is the inflection point: more hands become profitable, shoving ranges expand significantly' },
+          { type: 'key', text: 'Very short? Worry less about elimination and see more hands become profitable. Use leverage of bigger stacks.' },
+        ]
+      },
+      {
+        id: 'ch10s2',
+        label: 'Calling Ranges',
+        content: [
+          { type: 'bullet', text: 'Calling ranges are tight: 4.7–7.5% based on position' },
+          { type: 'bullet', text: 'BB calls wider because they close the action' },
+          { type: 'bullet', text: 'If your stack can be hurt or eliminated: call tighter. Bigger stack that can withstand the hit: open calling range slightly.' },
+          { type: 'bullet', text: 'Better position of the shover → wider calling range for short stack' },
+          { type: 'bullet', text: 'With a micro stack: can profitably call a pretty wide range' },
+          { type: 'warn', text: 'It is so important to drill your calling ranges as a short stack — your chips are worth so much more.' },
+        ]
+      },
+      {
+        id: 'ch10s3',
+        label: 'Strategic Targets',
+        content: [
+          { type: 'key', text: 'Target other short stacks whom you can hurt the most.' },
+          { type: 'bullet', text: 'As a micro stack: most advantageous to target the chip leader\'s BB — others fear being squeezed by the big stack' },
+          { type: 'bullet', text: 'Opponents must shove tighter against you because of the power of "stealing fold equity"' },
+          { type: 'bullet', text: 'Being the shortest does not mean play loose — if you still have many bb, play carefully' },
+          { type: 'warn', text: 'A short stack player makes everyone else\'s range tighter — busting before them would be a disaster for the table.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch11',
+    num: 'CH 11',
+    title: 'Big Stack Play',
+    sections: [
+      {
+        id: 'ch11s1',
+        label: 'Shoving Ranges',
+        content: [
+          { type: 'bullet', text: 'Chip leader can jam wider — opponents must call tighter because they risk elimination' },
+          { type: 'bullet', text: 'Slight lead: position and blockers still matter more than stack size. 88–55 can raise, not 99 (blocked by JJ–KK for straights).' },
+          { type: 'bullet', text: 'Bubble with large lead UTG: can shove ~30% of hands vs ~17% with slight lead' },
+          { type: 'key', text: 'Massive chip lead UTG: can jam 67% of hands including 23s. The bigger the stack, the wider you can shove.' },
+          { type: 'bullet', text: 'EP even with big stack: still open tighter (need to get through entire table — 4% per player = 20% chance of a playable hand)' },
+          { type: 'bullet', text: 'Massive lead EP: 20% open range. Slight lead EP: tight, similar to other stacks\' standard range.' },
+        ]
+      },
+      {
+        id: 'ch11s2',
+        label: 'Calling Ranges',
+        content: [
+          { type: 'bullet', text: 'Calling ranges increase only slightly despite shoving range expansion' },
+          { type: 'bullet', text: 'Medium and other big stacks must call tightest — fear of busting before a short stack' },
+          { type: 'key', text: 'With massive chip lead, calling ranges have barely gotten wider. Tight is still right for calls.' },
+          { type: 'bullet', text: 'Unless you\'re a micro stack, there is a floor to your range: rarely go below AJs and 88 with a playable covered stack' },
+          { type: 'warn', text: 'Calling ranges across the board should be tight in tournaments — exception: micro stack where you get tremendous odds to call wide.' },
+        ]
+      },
+      {
+        id: 'ch11s3',
+        label: 'Strategic Approach',
+        content: [
+          { type: 'key', text: 'The more extreme the ICM, the wider the chip leader can shove. The bigger your stack, the more liberties as the aggressor.' },
+          { type: 'bullet', text: 'Monster chip lead: other players should be playing for 2nd and 3rd. ICM wants them to lock up the biggest payout possible.' },
+          { type: 'bullet', text: 'With a slight chip lead, position and blockers still more important than stack size for determining ranges' },
+          { type: 'bullet', text: 'Short stack (BU) calling the big stack (BB): small bet does not get many folds. If aggressive, better to go all-in than min bet.' },
+          { type: 'warn', text: 'When it comes to calling all-ins: tight is right regardless of stack size. Being the aggressor and being the caller are different skills.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch12',
+    num: 'CH 12',
+    title: 'Average Stack Play',
+    sections: [
+      {
+        id: 'ch12s1',
+        label: 'Position in the Stack Ecosystem',
+        content: [
+          { type: 'bullet', text: 'Medium stack has the least extreme ICM implications individually — lessons are more subtle' },
+          { type: 'bullet', text: 'Both big and short stacks have a low bubble factor relative to the medium stack' },
+          { type: 'key', text: 'Medium stacks have the highest average bubble factor at the table. Calling off too light as a medium stack is an ICM disaster.' },
+          { type: 'bullet', text: 'Big stacks going against each other have the highest single bubble factor, but average bubble factor across the table is highest for medium stacks' },
+          { type: 'bullet', text: 'Medium stack occupies a "sweet spot" where opposing ICM forces cancel out: doesn\'t want to bust next, but has a stack that can hurt people' },
+        ]
+      },
+      {
+        id: 'ch12s2',
+        label: 'Shoving & Calling Ranges',
+        content: [
+          { type: 'bullet', text: 'Even stacks at final table: MP shoving range (~21%) is very similar to ChipEV' },
+          { type: 'bullet', text: 'Table calling ranges a bit wider: 5–10% based on relative chip stack and position' },
+          { type: 'bullet', text: 'With extreme stacks (micro + monster): shoving range gets tighter, some calling ranges tighter, others looser — fear of running into big stack and busting before micro' },
+          { type: 'bullet', text: 'Around 20bb: opening range must get tighter, as must calling ranges' },
+          { type: 'key', text: 'Medium stacks tend to have similar ranges regardless of table lineup — the opposing ICM forces balance each other out.' },
+        ]
+      },
+      {
+        id: 'ch12s3',
+        label: 'The Medium Stack Dilemma',
+        content: [
+          { type: 'bullet', text: 'BB calling range varies wildly based on opponent\'s stack size and bubble factor' },
+          { type: 'bullet', text: 'Can call micro stack with ~50% of hands; only ~10% if covered; ~30% if it will hurt badly' },
+          { type: 'warn', text: 'If stack sizes are close together: call quite tight even when opponent is shoving wide.' },
+          { type: 'bullet', text: 'Short stack: low bubble factor (essentially next out unless they move). Big stack: low bubble factor (chips worth less). Medium stack: stands to lose most equity.' },
+          { type: 'key', text: 'No matter your stack size, calling ranges should be very tight when ICM is a factor. Medium stack just has the tightest of all.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch13',
+    num: 'CH 13',
+    title: 'Post Flop Play',
+    sections: [
+      {
+        id: 'ch13s1',
+        label: 'ICM & Postflop Overview',
+        content: [
+          { type: 'bullet', text: 'All ICM concepts apply postflop — the more ICM is a factor, the less postflop play there is' },
+          { type: 'bullet', text: 'GTO solver shows how to play an entire range in a balanced way — not the single best way to win. Exploit opponents who deviate.' },
+          { type: 'key', text: 'Covering player key principle: can bet more frequently. Covered player: must check and call more, even with positional/range advantage.' },
+          { type: 'warn', text: 'ICM relegates range advantage and position to 2nd tier considerations. Bet sizes go down when ICM is a factor.' },
+        ]
+      },
+      {
+        id: 'ch13s2',
+        label: 'Wet Board Dynamics',
+        content: [
+          { type: 'bullet', text: '<strong>No ICM (BU vs BB, BB covers, 9s7s5o):</strong> BB checks 100%, BU bets/checks 50%, bet size 2/3 pot' },
+          { type: 'bullet', text: 'Good hands prefer checking (avoid x/r). Made hand with backdoor equity bets half the time. Weak pairs check back.' },
+          { type: 'bullet', text: 'OOP: folds to C-bet 40%; x/r 12% with gutshots and backdoor flushes; calls top/middle pair' },
+          { type: 'bullet', text: '<strong>With ICM (final table):</strong> BB donk bets 53.5% — can lead because of ICM pressure they exert as the covering player' },
+          { type: 'bullet', text: 'ICM donk bet sizing: 1/3 pot (smaller). Wants action, doesn\'t mind call with draws, gets money in while keeping pot controlled.' },
+          { type: 'key', text: '"Freeze bet": small flop bet to build a pot while avoiding an all-in. 2 opposing forces: desire to build pot + avoid playing for stacks.' },
+          { type: 'bullet', text: 'BU rarely raises (2.5%) in ICM spot and calls 86% vs BB donk' },
+        ]
+      },
+      {
+        id: 'ch13s3',
+        label: 'Dry Board Dynamics',
+        content: [
+          { type: 'bullet', text: '<strong>No ICM (A65 rainbow, BU covered):</strong> BB checks 100%, BU bets 100% at 1/4 pot. BU bets entire range; BB has too many weak hands.' },
+          { type: 'bullet', text: 'BB calls 45%; folds 40%; x/r 15% (strongest Ax and sets for value, some semi-bluffs)' },
+          { type: 'bullet', text: '<strong>With ICM (final table, A65 rainbow):</strong> BB still checks 100%. BU bets 100% but min bet (1/5 pot).' },
+          { type: 'bullet', text: 'BB response: x/r 14%; call 56%; fold 30%. BB calls more due to smaller bet.' },
+          { type: 'key', text: '"Threat bet": small flop bet + big turn bet threatening to shove river. Particularly powerful in ICM — similar to deep stack cash in terms of hand strength needed to call.' },
+        ]
+      },
+      {
+        id: 'ch13s4',
+        label: 'Covering Player Advantages',
+        content: [
+          { type: 'bullet', text: 'BB covering BU: gets to x/r more and doesn\'t have to fold as much' },
+          { type: 'bullet', text: 'BB x/r 20%; calls 60%; folds 20% when facing BU bet' },
+          { type: 'bullet', text: 'With x/r: BU calls 75%, folds 25% — BU is forced to slow down' },
+          { type: 'warn', text: 'ICM turns a covered player into a passive calling station — even when they have positional and/or range advantage.' },
+          { type: 'key', text: 'Covered by a lot? Check more, but opponent leads more. Covered slightly? Can still exert some ICM pressure.' },
+        ]
+      },
+      {
+        id: 'ch13s5',
+        label: 'Min-Bet & All-In Strategy',
+        content: [
+          { type: 'bullet', text: '<strong>Big stack (BB) vs small stack (BU) with ICM on wet board:</strong> BB goes all-in 5%; min bet 6%; checks 89%' },
+          { type: 'bullet', text: 'Response to all-in: call 37%; fold 63%. Response to min bet: all-in 27.5%; call 60%; fold 12.5%' },
+          { type: 'warn', text: 'Inducing when shallow with ICM is a disaster — forces you to call an all-in or fold. Small bet does not get many folds.' },
+          { type: 'key', text: 'When there is a big stack difference with ICM: min-or-all-in approach. Both are low variance — min keeps pot small, all-in gets many folds. Be passive, but if aggressive, be the MOST aggressive.' },
+          { type: 'bullet', text: 'BU response to check: all-in 30%; check 70% — control the pot and get to showdown' },
+          { type: 'bullet', text: 'Disaster to min bet and then be forced to fold — always better to put pressure on your opponent' },
+        ]
+      }
+    ]
+  }
+];
+
+// Build drawer nav
+function buildDrawer() {
+  const nav = document.getElementById('drawerNav');
+  nav.innerHTML = DATA.map(ch => `
+    <div class="nav-chapter" id="nav-${ch.id}">
+      <button class="nav-chapter-btn" onclick="toggleNavChapter('${ch.id}', event)">
+        <span class="nav-ch-num">${ch.num}</span>
+        <span class="nav-ch-title">${ch.title}</span>
+        <span class="nav-ch-arrow">›</span>
+      </button>
+      <div class="nav-sections" id="navsec-${ch.id}">
+        ${ch.sections.map(s => `
+          <a class="nav-section-link" href="#${s.id}" onclick="navClick(event, '${s.id}')">${s.label}</a>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNavChapter(id, e) {
+  const btn = e.currentTarget;
+  const sec = document.getElementById('navsec-' + id);
+  const isOpen = sec.classList.contains('open');
+  // close all
+  document.querySelectorAll('.nav-sections.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.nav-chapter-btn.expanded').forEach(el => el.classList.remove('expanded'));
+  if (!isOpen) {
+    sec.classList.add('open');
+    btn.classList.add('expanded');
+  }
+}
+
+function navClick(e, sectionId) {
+  e.preventDefault();
+  closeDrawer();
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      // auto-open the section
+      const section = el.closest('.section');
+      if (section && !section.classList.contains('open')) {
+        section.classList.add('open');
+      }
+    }
+  }, 320);
+}
+
+// Build main content
+function buildMain() {
+  const main = document.getElementById('main');
+  main.innerHTML = DATA.map(ch => `
+    <article class="chapter" id="${ch.id}">
+      <div class="chapter-header">
+        <span class="chapter-num">${ch.num}</span>
+        <h2 class="chapter-title">${ch.title}</h2>
+      </div>
+      ${ch.sections.map(s => buildSection(s)).join('')}
+    </article>
+  `).join('');
+}
+
+function buildSection(s) {
+  const items = s.content.map(c => {
+    if (c.type === 'bullet') return `<li class="bullet-item">${c.text}</li>`;
+    if (c.type === 'key') return `<li class="key-rule-item"><div class="key-rule">${c.text}</div></li>`;
+    if (c.type === 'warn') return `<li class="warn-item"><div class="warn-rule">${c.text}</div></li>`;
+    return '';
+  }).join('');
+
+  return `
+    <div class="section scroll-target" id="${s.id}">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        <span class="section-label">${s.label}</span>
+        <span class="section-arrow">▾</span>
+      </button>
+      <div class="section-body">
+        <ul class="bullets">
+          ${items}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
+// Fix bullet rendering
+document.addEventListener('DOMContentLoaded', () => {
+  buildDrawer();
+  buildMain();
+
+  // Fix: key-rule and warn-rule items shouldn't have bullet styling
+  document.querySelectorAll('.key-rule-item, .warn-item').forEach(li => {
+    li.style.paddingLeft = '0';
+  });
+  document.querySelectorAll('.key-rule-item::before, .warn-item::before').forEach(pseudo => {
+    pseudo.style.display = 'none';
+  });
+});
+
+function toggleSection(btn) {
+  const section = btn.closest('.section');
+  section.classList.toggle('open');
+}
+
+function toggleExpandAll() {
+  const btn = document.getElementById('expandAllBtn');
+  const allSections = document.querySelectorAll('.section');
+  const allExpanded = [...allSections].every(s => s.classList.contains('open'));
+
+  if (allExpanded) {
+    allSections.forEach(s => s.classList.remove('open'));
+    btn.textContent = 'EXPAND ALL';
+    btn.classList.remove('all-expanded');
+  } else {
+    allSections.forEach(s => s.classList.add('open'));
+    btn.textContent = 'COLLAPSE ALL';
+    btn.classList.add('all-expanded');
+  }
+}
+
+// Hamburger / drawer
+const hamburger = document.getElementById('hamburger');
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('overlay');
+
+hamburger.addEventListener('click', () => {
+  const isOpen = drawer.classList.contains('open');
+  isOpen ? closeDrawer() : openDrawer();
+});
+overlay.addEventListener('click', closeDrawer);
+
+function openDrawer() {
+  drawer.classList.add('open');
+  overlay.classList.add('active');
+  hamburger.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeDrawer() {
+  drawer.classList.remove('open');
+  overlay.classList.remove('active');
+  hamburger.classList.remove('open');
+  document.body.style.overflow = '';
+}
+</script>
+
+<style>
+  /* Fix pseudo-element bullet for key/warn items */
+  .key-rule-item { padding-left: 0 !important; list-style: none; }
+  .key-rule-item::before { display: none !important; }
+  .warn-item { padding-left: 0 !important; list-style: none; }
+  .warn-item::before { display: none !important; }
+  .bullet-item { }
+</style>
+
+</body>
+</html>

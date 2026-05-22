@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Modern Poker Theory — Field Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --surface: #ffffff;
+    --surface2: #f0ece5;
+    --border: #ddd8cf;
+    --text: #1a1714;
+    --text2: #5a534a;
+    --text3: #8a7f72;
+    --accent: #2c5282;
+    --accent2: #1a365d;
+    --accent-light: #ebf4ff;
+    --green: #2d6a4f;
+    --green-light: #e8f5ef;
+    --warn: #b5451b;
+    --warn2: #7a2e10;
+    --warn-light: #fdf0eb;
+    --drawer-w: 290px;
+    --header-h: 56px;
+    --radius: 8px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .hamburger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    margin: -8px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .hamburger span {
+    display: block;
+    width: 22px; height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: all 0.25s ease;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .header-title {
+    flex: 1;
+    min-width: 0;
+  }
+  .header-title h1 {
+    font-family: var(--serif);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+  }
+  .header-title p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .expand-all-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    padding: 4px 9px;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .expand-all-btn:hover,
+  .expand-all-btn.all-expanded {
+    background: var(--accent-light);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .header-badge {
+    background: var(--accent);
+    color: white;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+  /* ── OVERLAY ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,23,20,0.45);
+    z-index: 150;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  /* ── DRAWER ── */
+  .drawer {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: var(--drawer-w);
+    background: var(--surface);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 20px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-header h2 {
+    font-family: var(--serif);
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .drawer-header p {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .drawer-nav {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0 24px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-chapter { border-bottom: 1px solid var(--border); }
+  .nav-chapter:last-child { border-bottom: none; }
+
+  .nav-chapter-btn {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 18px;
+    text-align: left;
+    transition: background 0.15s;
+  }
+  .nav-chapter-btn:hover { background: var(--surface2); }
+  .nav-chapter-btn.active { background: var(--accent-light); }
+
+  .nav-ch-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    background: var(--accent-light);
+    padding: 2px 6px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    letter-spacing: 0.04em;
+    border: 1px solid rgba(44,82,130,0.2);
+  }
+  .nav-ch-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    flex: 1;
+    line-height: 1.3;
+  }
+  .nav-ch-arrow {
+    font-size: 12px;
+    color: var(--text3);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .nav-chapter-btn.expanded .nav-ch-arrow { transform: rotate(90deg); }
+
+  .nav-sections {
+    display: none;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+  .nav-sections.open { display: block; }
+
+  .nav-section-link {
+    display: block;
+    padding: 9px 18px 9px 40px;
+    font-size: 12.5px;
+    color: var(--text2);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    transition: all 0.15s;
+    line-height: 1.35;
+  }
+  .nav-section-link:last-child { border-bottom: none; }
+  .nav-section-link:hover {
+    background: var(--accent-light);
+    color: var(--accent);
+    padding-left: 44px;
+  }
+  .nav-section-link::before {
+    content: '›';
+    margin-right: 6px;
+    color: var(--accent);
+    opacity: 0.6;
+  }
+
+  /* ── MAIN ── */
+  main {
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 60px;
+    max-width: 680px;
+    margin: 0 auto;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .chapter { margin-bottom: 32px; }
+
+  .chapter-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent);
+  }
+  .chapter-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-light);
+    border: 1px solid rgba(44,82,130,0.25);
+    padding: 4px 10px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+    margin-top: 3px;
+  }
+  .chapter-title {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.25;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .section-toggle {
+    width: 100%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 14px;
+    text-align: left;
+    transition: background 0.15s;
+    gap: 10px;
+  }
+  .section-toggle:hover { background: var(--surface2); }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .section-arrow {
+    font-size: 14px;
+    color: var(--text3);
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+  }
+  .section.open .section-arrow { transform: rotate(180deg); }
+  .section.open .section-toggle { background: var(--accent-light); }
+  .section.open .section-label { color: var(--accent2); }
+
+  .section-body {
+    display: none;
+    padding: 4px 14px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .section.open .section-body { display: block; }
+
+  .bullets { list-style: none; padding: 0; }
+  .bullets li {
+    position: relative;
+    padding: 5px 0 5px 16px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--text);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .bullets li:last-child { border-bottom: none; }
+  .bullets li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 13px;
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    opacity: 0.7;
+  }
+
+  .key-rule {
+    background: var(--green-light);
+    border-left: 3px solid var(--green);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.45;
+  }
+
+  .warn-rule {
+    background: var(--warn-light);
+    border-left: 3px solid var(--warn);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin: 8px 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--warn2);
+    line-height: 1.45;
+  }
+
+  .key-rule-item { padding-left: 0 !important; list-style: none; }
+  .key-rule-item::before { display: none !important; }
+  .warn-item { padding-left: 0 !important; list-style: none; }
+  .warn-item::before { display: none !important; }
+
+  .scroll-target { scroll-margin-top: calc(var(--header-h) + 12px); }
+
+  footer {
+    text-align: center;
+    padding: 20px 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text3);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--border);
+    max-width: 680px;
+    margin: 0 auto;
+    line-height: 1.8;
+  }
+  footer em { font-style: italic; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<header>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="header-title">
+    <h1>Modern Poker Theory</h1>
+    <p>GTO Field Reference · Acevedo</p>
+  </div>
+  <button class="expand-all-btn" id="expandAllBtn" onclick="toggleExpandAll()">EXPAND ALL</button>
+  <div class="header-badge">GTO</div>
+</header>
+
+<nav class="drawer" id="drawer" aria-label="Chapters">
+  <div class="drawer-header">
+    <h2>Modern Poker Theory</h2>
+    <p>GTO Field Reference</p>
+  </div>
+  <div class="drawer-nav" id="drawerNav"></div>
+</nav>
+
+<main id="main"></main>
+
+<footer>
+  Modern Poker Theory · GTO Field Reference · Field Edition<br>
+  Adapted from <em>Modern Poker Theory</em> by Michael Acevedo<br>
+  This is an unofficial study adaptation for personal use. All underlying concepts © Michael Acevedo.
+</footer>
+
+<script>
+const DATA = [
+  {
+    id: 'ch1',
+    num: 'CH 1',
+    title: 'Core Concepts',
+    sections: [
+      {
+        id: 'ch1s1',
+        label: 'Hand Ranges & Combinatorics',
+        content: [
+          { type: 'key', text: 'All the best players think in terms of ranges and combos, not individual hands. This process will be difficult at first but becomes second nature.' },
+          { type: 'bullet', text: 'Once a player puts money in the pot, they reveal information — use it to assign a starting range of hands' },
+          { type: 'bullet', text: '169 preflop hand types: 13 pocket pairs (5.88%), 78 suited hands (23.53%), 78 unsuited (70.59%)' },
+          { type: 'bullet', text: 'Professional players come to the table with well-thought-out ranges that are not easily exploitable — they do the work off the table' },
+          { type: 'bullet', text: 'Knowing your own range composition is key — each hand in your range must be played in the most profitable way in the context of that range' },
+          { type: 'warn', text: 'Profit = opponents\' mistakes − our mistakes. We no longer have the luxury of ignoring our own game.' },
+        ]
+      },
+      {
+        id: 'ch1s2',
+        label: 'Equity Types & Fold Equity',
+        content: [
+          { type: 'bullet', text: '<strong>Hand vs range equity:</strong> assign a range based on villain\'s actions, then calculate your equity against that range' },
+          { type: 'bullet', text: '<strong>Range vs range equity:</strong> useful postflop — how each player\'s range is affected by community cards. Equity distribution changes with board texture.' },
+          { type: 'bullet', text: '<strong>Fold equity</strong> = (probability villain folds) × (villain\'s hand equity). Total equity = fold equity + hand equity.' },
+          { type: 'bullet', text: '<strong>Equity realization (EqR):</strong> the fraction of equity that materializes as EV. Position dramatically affects EqR.' },
+          { type: 'bullet', text: 'In position: checking behind guarantees a free card — massive EqR advantage over OOP. OOP after checking will often face a bet and be forced to fold.' },
+          { type: 'bullet', text: 'Suited hands realize ~16% more equity than offsuit — more flexibility to semi-bluff or call with higher implied odds' },
+          { type: 'key', text: 'If your range is strong vs opponent\'s, they cannot bet aggressively. Use range advantage to realize equity and deny theirs.' },
+        ]
+      },
+      {
+        id: 'ch1s3',
+        label: 'SPR Guidelines',
+        content: [
+          { type: 'bullet', text: 'SPR = effective stack ÷ pot size. Knowing stack size relative to pot is crucial for planning ahead and tailoring bet sizes.' },
+          { type: 'bullet', text: '<strong>Low SPR (0–5):</strong> Made hands (top pair, overpairs) do well. Speculative hands struggle — lack of fold equity and lower implied odds.' },
+          { type: 'bullet', text: '<strong>Medium SPR (6–11):</strong> Top pair value is demoted. Value shifts toward suitedness and connectedness over high card value.' },
+          { type: 'bullet', text: '<strong>High SPR (11+):</strong> Value comes from nut potential — sets, nut draws, high flushes, straights. Single pair struggles in large pots without backup equity.' },
+          { type: 'key', text: 'Plan ahead and tailor bet sizes to put yourself in a favorable SPR situation according to the ranges in play.' },
+        ]
+      },
+      {
+        id: 'ch1s4',
+        label: 'Range Morphology',
+        content: [
+          { type: 'bullet', text: '<strong>Linear range:</strong> highest equity hands without gaps — best hands straight down' },
+          { type: 'bullet', text: '<strong>Polarized range:</strong> strong value hands + low equity bluffs — nothing in between' },
+          { type: 'bullet', text: '<strong>Condensed/depolarized range:</strong> middle equity hands — top and bottom removed' },
+          { type: 'bullet', text: '<strong>Capped range:</strong> missing the strongest hands (the top end)' },
+          { type: 'bullet', text: '<strong>Uncapped range:</strong> contains all strong hands, including the nuts' },
+          { type: 'warn', text: 'Most situations will have a mix of range types. Recognizing which morphology applies to each player in a given hand drives the correct strategic response.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch2',
+    num: 'CH 2',
+    title: 'GTO vs Exploitative Play',
+    sections: [
+      {
+        id: 'ch2s1',
+        label: 'What GTO Guarantees',
+        content: [
+          { type: 'bullet', text: 'GTO (Game Theory Optimal) = playing a Nash Equilibrium strategy where all players are maximally exploiting each other simultaneously' },
+          { type: 'bullet', text: 'At Nash Equilibrium: no player can unilaterally change their strategy to improve their own expectation' },
+          { type: 'key', text: 'GTO gives you a guaranteed minimum EV. It is mathematically impossible for any opponent to gain an edge on you — you will either break even or profit.' },
+          { type: 'bullet', text: 'GTO strategies don\'t make specific plays vs specific opponents — they assume your opponent will correctly adjust to whatever you do' },
+          { type: 'bullet', text: 'If you play GTO vs a non-GTO opponent, your expectation will be greater than at equilibrium — and increases as their strategy gets worse' },
+          { type: 'warn', text: 'GTO strategies won\'t earn as much EV as a strategy perfectly designed to counter specific opponent mistakes. GTO is the floor, not the ceiling.' },
+        ]
+      },
+      {
+        id: 'ch2s2',
+        label: 'MDF & The Indifference Principle',
+        content: [
+          { type: 'bullet', text: 'If a player uses a mixed strategy at equilibrium, all actions taken with non-zero frequency must have the same EV — this is the Indifference Principle' },
+          { type: 'bullet', text: 'If you\'re indifferent between two options, it means your opponent is playing in such a way to make you so — this tells you something about their strategy' },
+          { type: 'bullet', text: '<strong>Alpha</strong> = how often a bluff needs to work to break even: Alpha = Bet ÷ (Bet + Pot)' },
+          { type: 'bullet', text: '<strong>MDF (Minimum Defense Frequency)</strong> = 1 − Alpha: the calling frequency at which villain doesn\'t profit from bluffing' },
+          { type: 'warn', text: 'Basing your entire defense strategy on MDF alone will be highly detrimental — it doesn\'t account for equities and range distributions. If calling and raising are both -EV, folding (always 0 EV) is the highest EV play.' },
+        ]
+      },
+      {
+        id: 'ch2s3',
+        label: 'Passive vs Active Exploitation',
+        content: [
+          { type: 'bullet', text: '<strong>Passive exploitation:</strong> simply playing GTO while opponent deviates to a weaker strategy — they self-exploit. You gain EV without doing anything extra.' },
+          { type: 'bullet', text: '<strong>Active exploitation:</strong> deviating from your core strategy to further take advantage of a specific leak' },
+          { type: 'bullet', text: '<strong>MES (Maximal Exploitation Strategy):</strong> maximize EV vs villain\'s suboptimal strategy. Higher reward but carries counter-exploitation risk.' },
+          { type: 'bullet', text: '<strong>MinES (Minimal Exploitation Strategy):</strong> smaller adjustments, harder for villain to detect, lower risk of being counter-exploited. Lower EV than MES but safer.' },
+          { type: 'key', text: 'Top players have sound GTO baseline strategies (unexploitable vs tough or unknown opponents) AND the ability to make exploitative adjustments as they learn more about an opponent.' },
+        ]
+      },
+      {
+        id: 'ch2s4',
+        label: 'MES & MinES in Practice',
+        content: [
+          { type: 'bullet', text: '<strong>Reactive MinES:</strong> adjust after observing the leak in the actual hand — e.g., villain overfolds to C-bets → adjust turn and river play to account for a stronger villain range' },
+          { type: 'bullet', text: '<strong>Proactive MinES:</strong> adjust before the mistake happens because you assume they will commit it — e.g., increase C-bet frequency when you know villain overfolds to flop bets' },
+          { type: 'bullet', text: 'MES risk: if wrong in your assessment of villain\'s play and you adjust incorrectly, you deviate to a weaker strategy that loses value' },
+          { type: 'warn', text: 'Unless your opponent is completely oblivious, they can notice when you\'re completely unbalanced. MinES adjustments are smaller and harder to spot — you can exploit for longer before they realize what you\'re doing.' },
+          { type: 'key', text: 'Use both reactive and proactive MinES. You must have a high degree of certainty in your reads if aiming for maximum exploitation.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch3',
+    num: 'CH 3',
+    title: 'Tournament Fundamentals',
+    sections: [
+      {
+        id: 'ch3s1',
+        label: 'ICM & Risk Premium',
+        content: [
+          { type: 'bullet', text: 'In tournaments, chips have no direct monetary value. Always base decisions on $EV (monetary), not cEV (chip EV).' },
+          { type: 'bullet', text: '<strong>Principle of Diminishing Chip Value:</strong> chips you win are worth less than chips you risk. The more chips you have, the less each is worth.' },
+          { type: 'bullet', text: '<strong>Risk Premium:</strong> the extra equity you need beyond pot odds to make a +$EV play in tournaments' },
+          { type: 'key', text: 'Risk premium is higher when calling big bets, especially all-in calls risking tournament life. Flatter payout structure = higher risk premium. Top-heavy structure = lower risk premium.' },
+          { type: 'bullet', text: 'Short stacks increase other players\' risk premium — particularly other short stacks' },
+          { type: 'bullet', text: 'Defend tighter from the BB with risk premium — it also applies postflop. May need to dump the bottom of your marginal +EV calling range.' },
+          { type: 'bullet', text: 'BB should defend wider against players who have a high risk premium against them — they will struggle to barrel off and BB can realize more equity' },
+          { type: 'warn', text: 'You can\'t apply ICM pressure to players who are not ICM aware or choose not to follow ICM. Pay close attention to which opponents respond to pressure.' },
+          { type: 'bullet', text: 'Top-heavy payouts reward aggressive play. Flatter structures reward tighter play and laddering.' },
+        ]
+      },
+      {
+        id: 'ch3s2',
+        label: 'Variance & Bankroll',
+        content: [
+          { type: 'bullet', text: 'Variance = how far actual results spread from expectation (EV). Tournaments have far more variance than cash games.' },
+          { type: 'bullet', text: 'Losing a flip early in a cash game is very different from losing a flip deep in a tournament with thousands on the line' },
+          { type: 'key', text: 'Two ways to decrease variance while increasing MTT profitability: (1) increase your average ROI and (2) increase your volume.' },
+          { type: 'bullet', text: '200 buy-ins suggested for tournament bankroll. 1,000 buy-ins to truly minimize risk of ruin.' },
+          { type: 'bullet', text: 'Live tournaments: can keep a smaller bankroll — higher ROI, smaller fields, smaller swings' },
+          { type: 'bullet', text: 'ITM% of ~15–18% for winning online MTT players. Higher for live due to softer fields.' },
+          { type: 'bullet', text: 'Higher ITM% than expected: often playing too passively on bubbles / passing on too many spots. Lower ITM%: too active on bubbles or too aggressive early.' },
+          { type: 'warn', text: 'Many players who have won a lot are in reality losing players who ran well. Some great players were forced to quit before turning things around. ROI over large samples is what matters.' },
+        ]
+      },
+      {
+        id: 'ch3s3',
+        label: 'Mental Game — Winning Traits',
+        content: [
+          { type: 'bullet', text: 'Generally positive attitude' },
+          { type: 'bullet', text: 'Understands variance but takes full responsibility for results' },
+          { type: 'bullet', text: 'Great work ethic — constantly works on improving game and puts in volume. 80% play, 20% study.' },
+          { type: 'bullet', text: 'Has emotions under control. Is always looking for feedback and open to criticism.' },
+          { type: 'bullet', text: 'Long-term results oriented — never short-term focused' },
+          { type: 'bullet', text: 'Increases EV by playing against weaker opposition most of the time (game selection)' },
+          { type: 'bullet', text: 'Plays only as many tables as possible while remaining mindful and playing A+ game' },
+          { type: 'bullet', text: 'Takes care of health: eating well, working out, meditating, hydrating. Sleeps well, especially before big events.' },
+          { type: 'bullet', text: 'Has pre- and post-game routines' },
+          { type: 'key', text: 'Part of a network of like-minded successful poker players — constantly discusses hands and strategy with them. Fedor Holz: "I surrounded myself with very smart people and became part of a great poker community."' },
+        ]
+      },
+      {
+        id: 'ch3s4',
+        label: 'Mental Game — Warning Signs',
+        content: [
+          { type: 'warn', text: 'Blames variance, bad luck, the poker room, or dealers for bad results. Takes no responsibility.' },
+          { type: 'bullet', text: 'Lazy — never works on game, struggles to put in hours at the tables' },
+          { type: 'bullet', text: 'Often on tilt. Doesn\'t take criticism. Short-term results oriented.' },
+          { type: 'bullet', text: 'Huge ego — plays against better opponents all the time' },
+          { type: 'bullet', text: 'Plays too many tables and autopilots — generally playing B or C game' },
+          { type: 'bullet', text: 'Doesn\'t take care of health. Poor sleeping habits — no problem going out before a big event.' },
+          { type: 'bullet', text: 'Tells bad beat stories and complains about how unlucky they are to poker friends' },
+          { type: 'warn', text: 'Life does not change when you win a poker tournament or come into money. If you want to change your life, you have to change your habits. Every single day, small actions subtly move your life in the right or wrong direction.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch4',
+    num: 'CH 4',
+    title: 'Pre-Flop Framework',
+    sections: [
+      {
+        id: 'ch4s1',
+        label: 'Position-Based Principles',
+        content: [
+          { type: 'bullet', text: 'Pre-flop ranges are the backbone of fundamentally sound poker. A pre-flop mistake cascades: flop mistake → turn mistake → river mistake.' },
+          { type: 'bullet', text: 'As a rule of thumb: the earlier the position, the higher the absolute hand strength required to play' },
+          { type: 'bullet', text: 'Later positions can profitably play weaker, more speculative hands' },
+          { type: 'bullet', text: 'The most important players to consider when deciding to open marginal hands: BN, SB, BB — most likely to give you action' },
+          { type: 'key', text: 'Always take the highest EV action with each hand at every decision point. Just because a play is +EV does not mean it\'s correct — always compare against ALL other options.' },
+          { type: 'bullet', text: 'Well-constructed pre-flop ranges improve post-flop play — they give you better board coverage and playability than improvised strategies' },
+          { type: 'bullet', text: 'Having developed sound balanced strategies, it becomes easier to spot when opponents have not — making it easy to realize when they are unbalanced and exploitable' },
+        ]
+      },
+      {
+        id: 'ch4s2',
+        label: 'Bet Sizing Guidelines',
+        content: [
+          { type: 'bullet', text: '<strong>Earlier position → smaller bet size</strong> (more players behind who can wake up with strong hands)' },
+          { type: 'bullet', text: '<strong>Wider range → bigger bet size</strong> (more of opponent\'s hands have the right equity to call)' },
+          { type: 'bullet', text: '<strong>Under 25bb:</strong> always min-raise — gives opponents worst price on rejams; allows you to fold worst hands in range. Raise-folding short stack is expensive.' },
+          { type: 'bullet', text: '<strong>30–35bb+:</strong> can increase to ~2.3x — threat of rejam lowers. At 100bb+ use 2.3–2.5x.' },
+          { type: 'bullet', text: 'Under 40bb: all 4-bets are all-in. With 50–100bb: 2.25–2.5x IP and 3x OOP. 5-bets are always all-in.' },
+          { type: 'bullet', text: 'In general: bigger bet sizes when deep stacked and when OOP' },
+          { type: 'key', text: 'Strive to simplify your strategies as much as possible to minimize mistakes without hurting overall expectation. Using a simpler strategy against a superior opponent reduces their edge.' },
+          { type: 'warn', text: 'The best bet size has not been solved. General guidelines are more art than science — there is always room for exploitative sizing against specific opponents.' },
+        ]
+      },
+      {
+        id: 'ch4s3',
+        label: 'General Pre-Flop Heuristics',
+        content: [
+          { type: 'bullet', text: 'From each position, play a distribution of hands strong relative to the random hands yet to act' },
+          { type: 'bullet', text: 'Hands played with mixed strategies (sometimes raising, sometimes folding) are threshold hands — start exploitative range widening here' },
+          { type: 'bullet', text: 'When exploitatively opening wider than usual and facing a 3-bet, it\'s fine to over-fold' },
+          { type: 'bullet', text: 'In poker, randomizing = employing aleatoric selection between equivalent EV actions to guarantee unpredictability' },
+          { type: 'bullet', text: '<strong>2 main player leak types:</strong> (1) their action frequencies are wrong, (2) they put the wrong hands in their ranges' },
+          { type: 'key', text: 'Always think a few steps ahead. Avoid putting yourself in difficult spots. Know before you raise if your hand is a raise-fold or raise-call. Know if it works better as an open shove or min-raise.' },
+          { type: 'warn', text: 'In live games, decisions tend to be more binary because of game softness. Reads and history tend to break ties — avoid autopiloting.' },
+        ]
+      },
+      {
+        id: 'ch4s4',
+        label: 'Playing vs 3-Bets',
+        content: [
+          { type: 'bullet', text: 'Must defend enough of your range against 3-bets so villains are indifferent to 3-betting with the bottom of their range' },
+          { type: 'bullet', text: '<strong>Vs polarized 3-bet range:</strong> more hands have the right equity to call (dominated less often). Call more. Suited broadways, suited connectors, pocket pairs are good calls.' },
+          { type: 'bullet', text: '<strong>Vs linear 3-bet range:</strong> defend tighter. Stronger bluffs needed as hands get 4-bet/folded.' },
+          { type: 'bullet', text: 'Offsuit broadways and weak Ax: poor equity realization, bad reverse implied odds — generally fold to 3-bets' },
+          { type: 'bullet', text: 'If villain 3-bets too often and will fold to a 4-bet: 4-bet a polarized range with good blockers (e.g., A5s)' },
+          { type: 'bullet', text: 'If villain calls 3-bets wide and only 5-bets premiums: 4-bet a linear range for immediate value with strong post-flop range' },
+          { type: 'bullet', text: 'Smaller opponent 3-bet size → more hands you need to defend. Bigger size → fewer hands to defend.' },
+          { type: 'warn', text: 'You will get 3-bet far more often when opening UTG than from the BN — despite your stronger UTG range. More players to act means more 3-bet opportunities for the table.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch5',
+    num: 'CH 5',
+    title: 'Post-Flop Principles',
+    sections: [
+      {
+        id: 'ch5s1',
+        label: 'Two Core Reasons to Bet',
+        content: [
+          { type: 'key', text: 'Betting is not simply "value or bluff" — those are results of betting, not the reasons to bet. Think in terms of these 2 primary reasons:' },
+          { type: 'bullet', text: '<strong>Reason 1 — Leverage your informational advantage:</strong> You know your exact hand; villain only knows your range. Construct your betting range so villain can\'t consistently make correct decisions against all holdings in it.' },
+          { type: 'bullet', text: '<strong>Reason 2 — Realize equity or prevent villain\'s equity realization:</strong> Betting denies opponent\'s equity and sets up favorable SPR for your EqR.' },
+          { type: 'bullet', text: 'Every time you bet, you force a decision. Build your range so the correct response varies drastically depending on which part of your range you hold.' },
+          { type: 'bullet', text: 'Range diversity = board coverage = informational advantage extended across all streets. Having good board coverage means your range makes strong hands on a wide variety of runouts.' },
+          { type: 'warn', text: 'A mistake is defined as a decision villain would not have made if they could see your hole cards — not just a decision that is bad against your range.' },
+        ]
+      },
+      {
+        id: 'ch5s2',
+        label: 'Equity Buckets',
+        content: [
+          { type: 'bullet', text: '<strong>Strong hands:</strong> ≥75% equity — incentivized to build the pot' },
+          { type: 'bullet', text: '<strong>Good hands:</strong> 50–75% equity — benefit from value bets and protection' },
+          { type: 'bullet', text: '<strong>Weak hands:</strong> 33–50% equity — benefit from checking back in many spots; useful as semi-bluffs when opponent\'s range is weak' },
+          { type: 'bullet', text: '<strong>Trash hands:</strong> ≤33% equity — generally C-bet more than weak hands; mostly benefit from fold equity' },
+          { type: 'key', text: 'A hand\'s value is NOT static — it\'s dynamic, relative to ranges in play and board type. You don\'t need exact combos. All you need is a good idea of each player\'s equity bucket distribution.' },
+        ]
+      },
+      {
+        id: 'ch5s3',
+        label: 'Strategic Actions Framework',
+        content: [
+          { type: 'bullet', text: '<strong>Folding:</strong> valid only when no other option (call or raise) has positive expectation' },
+          { type: 'bullet', text: '<strong>Checking IP:</strong> benefits the weaker portion of IP\'s range to realize equity. IP checking range only needs to be balanced on the average turn card.' },
+          { type: 'bullet', text: '<strong>Checking OOP:</strong> does NOT guarantee equity realization — need for range balance even greater. Must balance on the flop to withstand IP bets.' },
+          { type: 'bullet', text: '<strong>Calling:</strong> realizes equity by reaching showdown or seeing another card' },
+          { type: 'bullet', text: '<strong>Raising:</strong> only raise to leverage informational advantage OR to realize/deny equity — same principle as betting' },
+          { type: 'warn', text: 'Once you take an action, you can only hold hands present in the range that takes that action. If the story your opponent is telling doesn\'t make sense, they probably don\'t have it.' },
+        ]
+      },
+      {
+        id: 'ch5s4',
+        label: 'Bet Sizing Concepts',
+        content: [
+          { type: 'bullet', text: 'More polarized range → bigger bet sizes incentivized. More depolarized/condensed range → smaller sizes.' },
+          { type: 'bullet', text: 'When betting across multiple streets: use smaller sizes on early streets with a merged range; wait for future streets to start polarizing' },
+          { type: 'bullet', text: '<strong>For MTTs: use 2 bet sizes</strong> — 1/3 pot and 2/3 pot. If you want to simplify to 1 size: 1/3 pot across the board.' },
+          { type: 'bullet', text: 'The 1/3 pot strategy works fine vs the population — simplifies the game tree, easy to implement, high frequency C-bet, forces decisions, exploits tendency to overfold small bets' },
+          { type: 'key', text: 'Become proficient in at least 2 bet sizes (big and small) and understand how to implement them correctly. Most of the time, knowing if it\'s a "big-bet flop" or "small-bet flop" is enough.' },
+          { type: 'warn', text: 'Using multiple bet sizes is dangerous in early betting rounds — it gives away information that opponents can leverage when they have the option to raise or bet. Effect gets magnified across multiple streets.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch6',
+    num: 'CH 6',
+    title: 'Flop Strategy',
+    sections: [
+      {
+        id: 'ch6s1',
+        label: 'Board Classification',
+        content: [
+          { type: 'bullet', text: '<strong>Flop structure:</strong> Trips (AAA) / Paired (KK5) / Unpaired (Q74)' },
+          { type: 'bullet', text: '<strong>Flop texture:</strong> Monotone (all one suit) / Two-tone (2 of one suit) / Rainbow (all different)' },
+          { type: 'bullet', text: '<strong>Dynamic boards:</strong> low, connected, with flush/straight draws — equities shift drastically on future streets. Play more cautiously.' },
+          { type: 'bullet', text: '<strong>Static boards:</strong> high cards, offsuit, disconnected — strong hands stay strong, bad hands stay bad. Can be more aggressive.' },
+          { type: 'key', text: 'Flops sharing characteristics tend to be played similarly. Learn the families, not every individual flop. Axx is the most common flop (21.74% of all flops) and generally favors the preflop raiser.' },
+          { type: 'bullet', text: 'Low/connected boards generally favor the BB who has more suited connectors and offsuit hands in their wide defending range' },
+        ]
+      },
+      {
+        id: 'ch6s2',
+        label: 'Donk Betting',
+        content: [
+          { type: 'bullet', text: 'Overall BB donk bet frequency is only ~2% — not widely used at equilibrium' },
+          { type: 'bullet', text: '<strong>High donk bet flops (50%+):</strong> rank 7xx and 6xx with 1–3 possible flopped straights — BB has range and equity advantage here' },
+          { type: 'key', text: 'Donk betting is an effect, not a cause. The main cause is the BB having higher equity on those specific flops — which then results in higher donk betting frequency. Don\'t donk just to donk.' },
+          { type: 'bullet', text: 'Rainbow flops are donked at higher frequency than two-tone; monotone flops get donked least' },
+          { type: 'bullet', text: '<strong>Exploitative use:</strong> donk bet against overly aggressive opponents with a strong hand, hoping to get raised' },
+          { type: 'warn', text: 'Do NOT routinely donk bet high card boards (Axx, Kxx) — IP\'s range dominates there. The difficulty of balancing your range on A76 makes checking to the raiser 100% correct.' },
+        ]
+      },
+      {
+        id: 'ch6s3',
+        label: 'IP C-Bet Guidelines',
+        content: [
+          { type: 'key', text: 'If opponent has lots of trash in range → C-bet higher frequency, expect many folds. If they have few strong hands vs you → size up!' },
+          { type: 'bullet', text: '<strong>High C-bet% + big size flops:</strong> absolute best for IP. Play aggressively, expect to capture most of the pot.' },
+          { type: 'bullet', text: '<strong>Low C-bet% + small size flops:</strong> best flops for BB. Equities close. Be cautious — bet small and at low frequency.' },
+          { type: 'bullet', text: 'Bet-folding high equity hands on the flop is a disaster. If range isn\'t strong enough to C-bet 100%, split: C-bet polarized, check back good/weak hands that benefit from a free turn.' },
+          { type: 'bullet', text: 'If you have a checking range: check back strong hands that block opponent\'s continuing range' },
+          { type: 'bullet', text: 'If opponent will fold a lot or raise: bet small at high frequency. If they\'ll call a lot: size up.' },
+          { type: 'bullet', text: 'If your hand can value across 3 streets, it is almost always ideal to start betting the flop' },
+          { type: 'bullet', text: '<strong>Multi-way pots:</strong> blockers > raw hand strength. Play passive. Don\'t bet draws unless to the nuts.' },
+          { type: 'bullet', text: 'Hands with backdoor equity and no showdown value generally work well as semi-bluffs' },
+          { type: 'bullet', text: '<strong>If unsure whether to bet or check:</strong> ask what happens if raised. If your hand hates a raise and x/r is likely → check.' },
+          { type: 'warn', text: 'Don\'t put yourself in areas of the game tree where you\'re not comfortable. A simple plan beats no plan. Don\'t try to get recreational players off top pair — they won\'t fold it.' },
+          { type: 'key', text: 'Default when uncertain: C-bet 1/3 pot in most short and medium stack situations.' },
+        ]
+      },
+      {
+        id: 'ch6s4',
+        label: 'OOP C-Bet Guidelines',
+        content: [
+          { type: 'warn', text: 'Many players C-bet too often OOP with weak/trash hands, only to check/fold the turn. This is a serious, exploitable leak. Observant opponents will call the flop and fire the turn 100% when checked to.' },
+          { type: 'bullet', text: 'When OOP: good and weak hands are C-bet more often than trash hands (opposite of IP) — trash hands need to check/fold to avoid a weak, exploitable turn range' },
+          { type: 'key', text: 'Checking the flop with all hands OOP allows for an aggressive check-raising strategy — takes advantage of IP\'s aggression while reducing effective SPR and positional disadvantage. CO can easily opt for 100% checking strategy with minimal EV loss.' },
+          { type: 'bullet', text: 'On Axx and high card flops: OOP has range advantage and can C-bet most of the time' },
+          { type: 'bullet', text: 'On middle/low flops: equity distributions are more symmetric — play more passively' },
+          { type: 'bullet', text: 'Static disconnected boards with no possible straights are better for OOP — don\'t improve IP\'s range as much' },
+          { type: 'warn', text: 'If you bet too many low equity hands OOP, your average turn range will be too weak and exploitable — opponents can call flop then fire turn 100% when you check.' },
+        ]
+      },
+      {
+        id: 'ch6s5',
+        label: 'C-Bet Defense Guidelines',
+        content: [
+          { type: 'warn', text: 'Basing your entire defense on MDF will be highly detrimental — it doesn\'t account for equities and range distributions. If calling and raising are -EV, folding (always 0 EV) is the highest EV play.' },
+          { type: 'bullet', text: 'In general: x/r to a larger size when villain bets small; x/r smaller when villain uses a larger bet size (exception: all-in bets get better risk/reward vs large villain bet)' },
+          { type: 'bullet', text: 'Strong hands mostly want to x/r the flop, but many x/c with intention to x/r later — keeps x/c range protected' },
+          { type: 'bullet', text: 'Weak hands mostly x/c, ~1/3 get folded, ~15% work well as x/r bluffing combos' },
+          { type: 'bullet', text: 'If your range has a lot of trash, fold a lot of it vs a C-bet regardless of bet size or MDF' },
+          { type: 'key', text: 'Your flop x/r range won\'t be your strongest hands — it\'s hands that benefit from lowering the SPR with the right blockers. Value hands that don\'t block villain\'s continuing range make better x/r\'s. Opposite is true of bluffs.' },
+          { type: 'bullet', text: 'Deeper stacks → stronger average hand needed to x/r. Good draws that can barrel multiple streets increase in value.' },
+          { type: 'bullet', text: 'Flush draws and OESD are good — not the nuts. Don\'t x/r every draw. Maintain good board coverage in your x/c range.' },
+          { type: 'warn', text: 'Don\'t snap fold when missing the flop. Consider how equities are distributed and how often villain should be betting before giving up.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch7',
+    num: 'CH 7',
+    title: 'Turn & River',
+    sections: [
+      {
+        id: 'ch7s1',
+        label: 'Turn Key Concepts',
+        content: [
+          { type: 'bullet', text: 'Turn ranges depend entirely on the flop action — always trace back what ranges are present before deciding' },
+          { type: 'bullet', text: '<strong>After x/x flop:</strong> IP\'s range is capped and depolarized (would have C-bet most strong hands). OOP\'s range is still uncapped and wide — OOP develops a turn betting strategy.' },
+          { type: 'bullet', text: '<strong>After x/b/c flop:</strong> IP\'s range is polarized (bet strong and trash). OOP\'s range is condensed (folded trash, raised many strong hands) — OOP generally checks to IP.' },
+          { type: 'key', text: 'Always notice when IP checks back a flop that should be C-bet at high frequency — their range is heavily skewed toward made hands with very little air.' },
+          { type: 'bullet', text: '<strong>Turn card categories:</strong> Paired (pairs the board) / Flush (completes a flush) / Straight (completes OESD) / Ace (significant range impact) / Overcard (above top pair) / Brick (no significant connection)' },
+          { type: 'bullet', text: '<strong>Generally good for OOP:</strong> cards completing a straight or pairing the board' },
+          { type: 'bullet', text: '<strong>Generally good for IP:</strong> overcards not completing a straight (especially the Ace)' },
+          { type: 'warn', text: 'Poker is a game of equities — how much you have, how it\'s distributed, and how you realize it while preventing opponents from realizing theirs. You MUST adjust as future cards change equities.' },
+        ]
+      },
+      {
+        id: 'ch7s2',
+        label: 'River Principles',
+        content: [
+          { type: 'bullet', text: 'The river is where most mistakes are made and most money is won or lost' },
+          { type: 'bullet', text: 'If situation is polar vs bluff-catcher: polar player goes all-in with nut hands + Alpha% of bluffs. Opponent must call (1−Alpha) of their range.' },
+          { type: 'key', text: 'Avoid getting yourself in polarized situations when you\'re holding the bluff-catcher.' },
+          { type: 'bullet', text: 'Going all-in for a massive overbet when opponent can have traps is a substantial mistake and will lose a lot of EV' },
+          { type: 'bullet', text: 'x/r is NOT a great way to deny equity — what it achieves is preventing thin value bets and bluffs. Just having 10–20% traps in your range accomplishes both.' },
+          { type: 'bullet', text: 'OOP should bet the river at ~20–30% frequency after IP checks back the turn (IP\'s range more condensed, OOP\'s more polarized)' },
+          { type: 'bullet', text: '<strong>After x/c, x/c:</strong> most of OOP\'s hands want a cheap showdown. River donk bets are rare but can be 75%+ when the river card significantly shifts range polarization.' },
+          { type: 'key', text: 'River donk bet situations to study: four-flush boards, four-straight boards, river pairs the 2nd highest card on the board, runner-runner pairs.' },
+          { type: 'warn', text: 'If your range is condensed: check back middle strength hands, bet the top of your range, use the weakest hands as bluffs. Use smaller bet sizes for non-nutted value hands to protect from x/r.' },
+        ]
+      },
+      {
+        id: 'ch7s3',
+        label: 'Blockers & River Calling',
+        content: [
+          { type: 'bullet', text: 'On the river, all bluff-catchers are equal except in how they block value hands and don\'t block bluffs' },
+          { type: 'bullet', text: '<strong>Block villain\'s VALUE range</strong> → call more often' },
+          { type: 'bullet', text: '<strong>Block villain\'s BLUFFING range</strong> → fold more often' },
+          { type: 'bullet', text: '<strong>Block both value and bluffing range</strong> → look for other decision points' },
+          { type: 'bullet', text: '<strong>No relevant blockers</strong> → slightly negative or irrelevant to the decision' },
+          { type: 'key', text: 'Use villain\'s value range as the starting point. Even against very tight players, always call hands that beat their value range.' },
+          { type: 'bullet', text: 'Never call with bluff-catchers if the villain doesn\'t have enough bluffs' },
+          { type: 'bullet', text: 'If there is a lot of air in villain\'s range → more likely to be bluffing. Defend wider.' },
+          { type: 'bullet', text: '<strong>Perception matters:</strong> if perceived as a calling station → assume expanded value range. If perceived as weak → expect narrow value range and wider bluffing range.' },
+          { type: 'warn', text: 'Defending close to 1-Alpha is a good approximation in most river spots — but don\'t follow it blindly. Always consider ranges, equity, and context.' },
+        ]
+      }
+    ]
+  }
+];
+
+function buildDrawer() {
+  const nav = document.getElementById('drawerNav');
+  nav.innerHTML = DATA.map(ch => `
+    <div class="nav-chapter" id="nav-${ch.id}">
+      <button class="nav-chapter-btn" onclick="toggleNavChapter('${ch.id}', event)">
+        <span class="nav-ch-num">${ch.num}</span>
+        <span class="nav-ch-title">${ch.title}</span>
+        <span class="nav-ch-arrow">›</span>
+      </button>
+      <div class="nav-sections" id="navsec-${ch.id}">
+        ${ch.sections.map(s => `
+          <a class="nav-section-link" href="#${s.id}" onclick="navClick(event, '${s.id}')">${s.label}</a>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleNavChapter(id, e) {
+  const btn = e.currentTarget;
+  const sec = document.getElementById('navsec-' + id);
+  const isOpen = sec.classList.contains('open');
+  document.querySelectorAll('.nav-sections.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.nav-chapter-btn.expanded').forEach(el => el.classList.remove('expanded'));
+  if (!isOpen) {
+    sec.classList.add('open');
+    btn.classList.add('expanded');
+  }
+}
+
+function navClick(e, sectionId) {
+  e.preventDefault();
+  closeDrawer();
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      const section = el.closest('.section');
+      if (section && !section.classList.contains('open')) {
+        section.classList.add('open');
+      }
+    }
+  }, 320);
+}
+
+function buildMain() {
+  const main = document.getElementById('main');
+  main.innerHTML = DATA.map(ch => `
+    <article class="chapter" id="${ch.id}">
+      <div class="chapter-header">
+        <span class="chapter-num">${ch.num}</span>
+        <h2 class="chapter-title">${ch.title}</h2>
+      </div>
+      ${ch.sections.map(s => buildSection(s)).join('')}
+    </article>
+  `).join('');
+}
+
+function buildSection(s) {
+  const items = s.content.map(c => {
+    if (c.type === 'bullet') return `<li class="bullet-item">${c.text}</li>`;
+    if (c.type === 'key') return `<li class="key-rule-item"><div class="key-rule">${c.text}</div></li>`;
+    if (c.type === 'warn') return `<li class="warn-item"><div class="warn-rule">${c.text}</div></li>`;
+    return '';
+  }).join('');
+  return `
+    <div class="section scroll-target" id="${s.id}">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        <span class="section-label">${s.label}</span>
+        <span class="section-arrow">▾</span>
+      </button>
+      <div class="section-body">
+        <ul class="bullets">${items}</ul>
+      </div>
+    </div>
+  `;
+}
+
+function toggleSection(btn) {
+  btn.closest('.section').classList.toggle('open');
+}
+
+function toggleExpandAll() {
+  const btn = document.getElementById('expandAllBtn');
+  const allSections = document.querySelectorAll('.section');
+  const allExpanded = [...allSections].every(s => s.classList.contains('open'));
+  if (allExpanded) {
+    allSections.forEach(s => s.classList.remove('open'));
+    btn.textContent = 'EXPAND ALL';
+    btn.classList.remove('all-expanded');
+  } else {
+    allSections.forEach(s => s.classList.add('open'));
+    btn.textContent = 'COLLAPSE ALL';
+    btn.classList.add('all-expanded');
+  }
+}
+
+const hamburger = document.getElementById('hamburger');
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('overlay');
+
+hamburger.addEventListener('click', () => drawer.classList.contains('open') ? closeDrawer() : openDrawer());
+overlay.addEventListener('click', closeDrawer);
+
+function openDrawer() {
+  drawer.classList.add('open');
+  overlay.classList.add('active');
+  hamburger.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  drawer.classList.remove('open');
+  overlay.classList.remove('active');
+  hamburger.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildDrawer();
+  buildMain();
+});
+</script>
+</body>
+</html>
