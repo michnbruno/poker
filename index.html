@@ -23,6 +23,8 @@
     --gto-light: #ebf4ff;
     --tells: #7b2d52;
     --tells-light: #fdf5f8;
+    --little: #1a6464;
+    --little-light: #e8f6f6;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,6 +122,7 @@
   .card--icm .card-stripe { background: var(--icm); }
   .card--gto .card-stripe { background: var(--gto); }
   .card--tells .card-stripe { background: var(--tells); }
+  .card--little .card-stripe { background: var(--little); }
 
   .card-body {
     padding: 20px;
@@ -146,6 +149,7 @@
   .card--icm .card-badge { background: var(--icm-light); color: var(--icm); border: 1px solid rgba(181,69,27,0.25); }
   .card--gto .card-badge { background: var(--gto-light); color: var(--gto); border: 1px solid rgba(44,82,130,0.25); }
   .card--tells .card-badge { background: var(--tells-light); color: var(--tells); border: 1px solid rgba(123,45,82,0.25); }
+  .card--little .card-badge { background: var(--little-light); color: var(--little); border: 1px solid rgba(26,100,100,0.25); }
 
   .card-status {
     font-family: var(--mono);
@@ -205,6 +209,7 @@
   .card--icm .card-cta { background: var(--icm); color: white; }
   .card--gto .card-cta { background: var(--gto); color: white; }
   .card--tells .card-cta { background: var(--tells); color: white; }
+  .card--little .card-cta { background: var(--little); color: white; }
 
   footer {
     text-align: center;
@@ -303,6 +308,29 @@
       </div>
     </a>
 
+    <!-- Jonathan Little -->
+    <a class="card card--little" href="./little/" target="_blank">
+      <div class="card-stripe"></div>
+      <div class="card-body">
+        <div class="card-header">
+          <span class="card-badge">TOURNEY</span>
+          <span class="card-status live">Live</span>
+        </div>
+        <h2 class="card-title">Secrets of Pro Tournament Poker</h2>
+        <p class="card-desc">Mental framework, pre-flop play, value & bluffing, position, image, stack depth strategy, and player type adjustments. Adapted from Little.</p>
+        <div class="card-tags">
+          <span class="tag">Stack Depth</span>
+          <span class="tag">Bluffing</span>
+          <span class="tag">Image</span>
+          <span class="tag">Player Types</span>
+        </div>
+        <div class="card-cta">
+          <span>Open Reference</span>
+          <span class="arrow">→</span>
+        </div>
+      </div>
+    </a>
+
   </div>
 </main>
 
@@ -310,7 +338,8 @@
   Poker Field Guide · Personal Reference Suite<br>
   <em>Endgame Poker Strategy</em> content © respective authors &nbsp;·&nbsp;
   <em>Modern Poker Theory</em> © Michael Acevedo &nbsp;·&nbsp;
-  <em>Reading Poker Tells</em> © Zachary Elwood<br>
+  <em>Reading Poker Tells</em> © Zachary Elwood &nbsp;·&nbsp;
+  <em>Secrets of Pro Tournament Poker</em> © Jonathan Little<br>
   Compiled and adapted with <a href="https://claude.ai" target="_blank">Claude</a> by Anthropic
 </footer>
 

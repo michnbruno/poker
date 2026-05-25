@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Secrets of Pro Tournament Poker — Field Reference</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f2ed;
+    --surface: #ffffff;
+    --surface2: #f0ece5;
+    --border: #ddd8cf;
+    --text: #1a1714;
+    --text2: #5a534a;
+    --text3: #8a7f72;
+    --accent: #1a6464;
+    --accent2: #0d3d3d;
+    --accent-light: #e8f6f6;
+    --green: #2d6a4f;
+    --green-light: #e8f5ef;
+    --warn: #b5451b;
+    --warn2: #7a2e10;
+    --warn-light: #fdf0eb;
+    --drawer-w: 290px;
+    --header-h: 56px;
+    --radius: 8px;
+    --mono: 'DM Mono', monospace;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    z-index: 100;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  .hamburger {
+    background: none; border: none; cursor: pointer;
+    padding: 8px; margin: -8px;
+    display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
+  }
+  .hamburger span {
+    display: block; width: 22px; height: 2px;
+    background: var(--text); border-radius: 2px; transition: all 0.25s ease;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .header-title { flex: 1; min-width: 0; }
+  .header-title h1 {
+    font-family: var(--serif); font-size: 14px; font-weight: 700;
+    color: var(--text); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; line-height: 1.2;
+  }
+  .header-title p {
+    font-family: var(--mono); font-size: 10px; color: var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase;
+  }
+
+  .expand-all-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-family: var(--mono); font-size: 10px;
+    letter-spacing: 0.04em; padding: 4px 9px; border-radius: 4px;
+    cursor: pointer; flex-shrink: 0; transition: all 0.15s; white-space: nowrap;
+  }
+  .expand-all-btn:hover, .expand-all-btn.all-expanded {
+    background: var(--accent-light); border-color: var(--accent); color: var(--accent);
+  }
+
+  .header-badge {
+    background: var(--accent); color: white; font-family: var(--mono);
+    font-size: 10px; letter-spacing: 0.05em; padding: 3px 8px;
+    border-radius: 4px; flex-shrink: 0;
+  }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(26,23,20,0.45);
+    z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+  }
+  .overlay.active { opacity: 1; pointer-events: all; }
+
+  .drawer {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: var(--drawer-w); background: var(--surface); z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column; overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 20px 18px 14px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .drawer-header h2 {
+    font-family: var(--serif); font-size: 15px; font-weight: 700;
+    color: var(--text); line-height: 1.3;
+  }
+  .drawer-header p {
+    font-family: var(--mono); font-size: 10px; color: var(--accent);
+    letter-spacing: 0.08em; text-transform: uppercase; margin-top: 3px;
+  }
+
+  .drawer-nav { flex: 1; overflow-y: auto; padding: 8px 0 24px; -webkit-overflow-scrolling: touch; }
+  .nav-chapter { border-bottom: 1px solid var(--border); }
+  .nav-chapter:last-child { border-bottom: none; }
+
+  .nav-chapter-btn {
+    width: 100%; background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; gap: 10px; padding: 11px 18px;
+    text-align: left; transition: background 0.15s;
+  }
+  .nav-chapter-btn:hover { background: var(--surface2); }
+
+  .nav-ch-num {
+    font-family: var(--mono); font-size: 10px; color: var(--accent);
+    background: var(--accent-light); padding: 2px 6px; border-radius: 4px;
+    flex-shrink: 0; letter-spacing: 0.04em; border: 1px solid rgba(26,100,100,0.2);
+  }
+  .nav-ch-title { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; line-height: 1.3; }
+  .nav-ch-arrow { font-size: 12px; color: var(--text3); transition: transform 0.2s ease; flex-shrink: 0; }
+  .nav-chapter-btn.expanded .nav-ch-arrow { transform: rotate(90deg); }
+
+  .nav-sections { display: none; background: var(--surface2); border-top: 1px solid var(--border); }
+  .nav-sections.open { display: block; }
+
+  .nav-section-link {
+    display: block; padding: 9px 18px 9px 40px; font-size: 12.5px;
+    color: var(--text2); text-decoration: none;
+    border-bottom: 1px solid rgba(0,0,0,0.04); transition: all 0.15s; line-height: 1.35;
+  }
+  .nav-section-link:last-child { border-bottom: none; }
+  .nav-section-link:hover { background: var(--accent-light); color: var(--accent); padding-left: 44px; }
+  .nav-section-link::before { content: '›'; margin-right: 6px; color: var(--accent); opacity: 0.6; }
+
+  main {
+    padding-top: calc(var(--header-h) + 16px);
+    padding-bottom: 60px; max-width: 680px; margin: 0 auto;
+    padding-left: 16px; padding-right: 16px;
+  }
+
+  .chapter { margin-bottom: 32px; }
+
+  .chapter-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--accent);
+  }
+  .chapter-num {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    background: var(--accent-light); border: 1px solid rgba(26,100,100,0.25);
+    padding: 4px 10px; border-radius: 4px; letter-spacing: 0.06em;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .chapter-title {
+    font-family: var(--serif); font-size: 20px; font-weight: 700;
+    color: var(--text); line-height: 1.25;
+  }
+
+  .section {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin-bottom: 10px; overflow: hidden;
+  }
+  .section-toggle {
+    width: 100%; background: none; border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 13px 14px; text-align: left; transition: background 0.15s; gap: 10px;
+  }
+  .section-toggle:hover { background: var(--surface2); }
+  .section-label { font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .section-arrow { font-size: 14px; color: var(--text3); transition: transform 0.22s ease; flex-shrink: 0; }
+  .section.open .section-arrow { transform: rotate(180deg); }
+  .section.open .section-toggle { background: var(--accent-light); }
+  .section.open .section-label { color: var(--accent2); }
+  .section-body { display: none; padding: 4px 14px 14px; border-top: 1px solid var(--border); }
+  .section.open .section-body { display: block; }
+
+  .bullets { list-style: none; padding: 0; }
+  .bullets li {
+    position: relative; padding: 5px 0 5px 16px;
+    font-size: 13.5px; line-height: 1.55; color: var(--text);
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+  }
+  .bullets li:last-child { border-bottom: none; }
+  .bullets li::before {
+    content: ''; position: absolute; left: 0; top: 13px;
+    width: 5px; height: 5px; background: var(--accent); border-radius: 50%; opacity: 0.7;
+  }
+
+  .key-rule {
+    background: var(--green-light); border-left: 3px solid var(--green);
+    border-radius: 4px; padding: 8px 12px; margin: 8px 0;
+    font-size: 13px; font-weight: 500; color: var(--green); line-height: 1.45;
+  }
+  .warn-rule {
+    background: var(--warn-light); border-left: 3px solid var(--warn);
+    border-radius: 4px; padding: 8px 12px; margin: 8px 0;
+    font-size: 13px; font-weight: 500; color: var(--warn2); line-height: 1.45;
+  }
+  .key-rule-item { padding-left: 0 !important; list-style: none; }
+  .key-rule-item::before { display: none !important; }
+  .warn-item { padding-left: 0 !important; list-style: none; }
+  .warn-item::before { display: none !important; }
+  .scroll-target { scroll-margin-top: calc(var(--header-h) + 12px); }
+
+  footer {
+    text-align: center; padding: 20px 16px; font-family: var(--mono);
+    font-size: 11px; color: var(--text3); letter-spacing: 0.04em;
+    border-top: 1px solid var(--border); max-width: 680px;
+    margin: 0 auto; line-height: 1.8;
+  }
+  footer em { font-style: italic; color: var(--text2); }
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay"></div>
+
+<header>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="header-title">
+    <h1>Secrets of Pro Tournament Poker</h1>
+    <p>Field Reference · Little</p>
+  </div>
+  <button class="expand-all-btn" id="expandAllBtn" onclick="toggleExpandAll()">EXPAND ALL</button>
+  <div class="header-badge">TOURNEY</div>
+</header>
+
+<nav class="drawer" id="drawer">
+  <div class="drawer-header">
+    <h2>Pro Tournament Poker</h2>
+    <p>Field Reference</p>
+  </div>
+  <div class="drawer-nav" id="drawerNav"></div>
+</nav>
+
+<main id="main"></main>
+
+<footer>
+  Secrets of Pro Tournament Poker · Field Reference · Field Edition<br>
+  Adapted from <em>Secrets of Professional Tournament Poker Vol. 1</em> by Jonathan Little<br>
+  This is an unofficial study adaptation for personal use. All underlying concepts © Jonathan Little.
+</footer>
+
+<script>
+const DATA = [
+  {
+    id: 'ch1', num: 'CH 1', title: 'The Mental Framework',
+    sections: [
+      {
+        id: 'ch1s1', label: 'What to Think About in a Hand',
+        content: [
+          { type: 'key', text: 'Before and during every hand, run through this checklist: opponent\'s range · your hand · blinds & pot odds · your stack · everyone else\'s stack · tournament level · your image · everyone else\'s image · prize structure · board texture · opponent\'s tells · your tournament EV' },
+          { type: 'bullet', text: 'Everything you win or lose in poker can be quantified in terms of equity. Always make the most +EV play — or the least -EV.' },
+          { type: 'bullet', text: 'In the short run poker has huge variance, but if you get the money in good more than bad, you will win long term' },
+          { type: 'bullet', text: 'Every poker decision, including folding, can be classified in terms of EV' },
+          { type: 'warn', text: 'Do not play robotically. Don\'t stop thinking about opponents and only pay attention to your own cards. If you start ignoring information — opponent\'s preflop raise %, stack sizes, image — you will start making mistakes.' },
+        ]
+      },
+      {
+        id: 'ch1s2', label: 'EV & Pot Odds Essentials',
+        content: [
+          { type: 'bullet', text: 'You don\'t need to be exact with pot odds — estimating is fine. Every time you consider calling, think about the pot odds you\'re getting.' },
+          { type: 'bullet', text: 'Implied odds can justify a call when immediate pot odds can\'t. The deeper the stacks relative to the current bet, the greater the implied odds.' },
+          { type: 'warn', text: 'Beware of reverse implied odds — hands like A-9, K-10, Q-8. With a bad kicker you tend to win a small pot or lose a big one. Reverse implied odds increase as stacks get deep.' },
+          { type: 'bullet', text: 'Occasionally you will find a +EV situation you should pass up. Late in tournaments, losing one marginally +EV play means losing the opportunity to make more +EV decisions later.' },
+          { type: 'key', text: 'You must constantly analyze why you are making a decision. If you can\'t state why, reconsider the action.' },
+        ]
+      },
+      {
+        id: 'ch1s3', label: 'Levels of Thinking',
+        content: [
+          { type: 'bullet', text: 'You must constantly try to determine the level at which each opponent is thinking. It takes experience, concentration, and deep thought.' },
+          { type: 'bullet', text: 'Good players think: what do I have → what does he have → what does my hand look like to him → what does his hand look like to me → and so on' },
+          { type: 'bullet', text: 'Avoid leveling wars in tournaments — the risk/reward rarely justifies it' },
+          { type: 'bullet', text: 'If you pinpoint when someone is going to make a move before it happens, you will usually win a big pile of chips' },
+          { type: 'bullet', text: 'Players less likely to try to outplay you: straightforward tight players, those who consistently fold in late position when folded around to them' },
+          { type: 'key', text: 'If you can figure out how each player at your table plays, you can make profitable adjustments and win the most money from each of them.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch2', num: 'CH 2', title: 'Pre-Flop Play',
+    sections: [
+      {
+        id: 'ch2s1', label: 'Opening Guidelines',
+        content: [
+          { type: 'warn', text: 'Do not open limp any hands preflop — ever. Limping with the intention of folding is one of the worst plays in poker.' },
+          { type: 'bullet', text: 'When raising, you have 2 ways to win: bluff the opponent as the aggressor, or make the best hand. Callers generally have to hit some sort of hand to win.' },
+          { type: 'bullet', text: 'Earlier position requires higher absolute hand strength. Later positions can profitably play weaker, more speculative hands.' },
+          { type: 'bullet', text: 'If players are loose and aggressive behind you: tighten up your ranges, especially in middle and late position' },
+          { type: 'bullet', text: 'Always balance — sometimes raise AK, sometimes just call. You want to show up with a wide range of hands with each action you take.' },
+          { type: 'bullet', text: 'Tighten up as stacks get shorter — fewer ways to outplay opponents post-flop' },
+          { type: 'warn', text: 'Do not raise too many hands OOP. You can only play loose preflop when you have a significant edge over your opponent post-flop.' },
+        ]
+      },
+      {
+        id: 'ch2s2', label: 'Bet Sizing by Stack Depth',
+        content: [
+          { type: 'bullet', text: 'Always size bets and raises the same regardless of hand strength — opponents can\'t get a read on you' },
+          { type: 'bullet', text: '<strong>Preflop open sizes (first to enter pot):</strong> 125bb+ → 3bb · 70–125bb → 2.75bb · 40–70bb → 2.5bb · 12–40bb → 2.25bb · Under 12bb → all-in' },
+          { type: 'bullet', text: 'Add 1bb for each limper in front of you' },
+          { type: 'bullet', text: '<strong>Reraise:</strong> 2.75x the original raise + the amount of the initial raise for each caller. If OOP: 3.25x.' },
+          { type: 'key', text: 'If any bet risks 30% of your chips, you should usually go all-in.' },
+          { type: 'bullet', text: 'Post-flop with deep stacks: bets should be ½ to ¾ pot. Raise 3x if raising a bet; 3x + amount of callers if there\'s a bet and a call.' },
+          { type: 'warn', text: 'Raise the same amount at each blind level to avoid giving off tells. Only adjust if stack sizes drastically change.' },
+        ]
+      },
+      {
+        id: 'ch2s3', label: 'Reraising Strategy',
+        content: [
+          { type: 'bullet', text: 'If you only reraise with premium hands, opponents quickly figure out you always have a strong hand when you reraise — balance with weaker hands' },
+          { type: 'bullet', text: 'Reraise suited connectors like 9-6s or J-8s against aggressive openers — opponents won\'t put these in your range; win big when they flop well' },
+          { type: 'bullet', text: '<strong>Reraise or fold</strong> hands with reverse implied odds (A-8, K-10, Q-10) — do not call with them' },
+          { type: 'bullet', text: 'Vs aggressive opener from middle/late position: reraise a polarized range. Call with AQ, AJ, KQ, small pairs and suited connectors.' },
+          { type: 'bullet', text: 'The first time you reraise someone you will almost always get credit for a hand — use a fairly weak hand first so they don\'t push back' },
+          { type: 'key', text: 'You should reraise hands with: reverse implied odds (don\'t want to see a flop), hands much better than opponent\'s raising range, AND hands that flop decently well but not well enough to call a raise.' },
+        ]
+      },
+      {
+        id: 'ch2s4', label: 'Blind Play',
+        content: [
+          { type: 'bullet', text: 'Play tight from the SB — you will be OOP the entire hand. Reraise or fold most hands; only call with good implied odds.' },
+          { type: 'bullet', text: 'BB vs SB completing: a powerful position. Call and raise wide. Still fold junk.' },
+          { type: 'bullet', text: 'Don\'t get carried away defending blinds. Reraise tight from the BB — make sure you balance.' },
+          { type: 'bullet', text: 'If someone keeps raising your BB: reraise them every once in a while. Let them know you won\'t be pushed around.' },
+          { type: 'bullet', text: '<strong>The squeeze play:</strong> initial raiser often lacks a strong hand; caller would have reraised with one. Raise 3x the initial raise + callers. Great short stack play against aggressive opener and straightforward caller.' },
+          { type: 'warn', text: 'Always pay attention to who is in the BB and how they play against you specifically. If tight, raise every hand. If loose-aggressive, tighten up.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch3', num: 'CH 3', title: 'Value, Protection & Bluffing',
+    sections: [
+      {
+        id: 'ch3s1', label: '4 Reasons to Bet',
+        content: [
+          { type: 'key', text: 'When you make a bet, make sure there is a clear reason for it. The 4 reasons: (1) Value (2) Protection (3) Bluff (4) Information' },
+          { type: 'bullet', text: '<strong>Value:</strong> you expect opponent to call with a worse hand. Ask: can he call with a hand I beat?' },
+          { type: 'bullet', text: '<strong>Protection:</strong> protect your hand from being outdrawn — especially on wet boards with a vulnerable made hand' },
+          { type: 'bullet', text: '<strong>3 types of bluff:</strong> Total bluff (little/no equity if called) · Semi-bluff (behind if called but has equity) · Preflop bluff (any raise without a strong hand)' },
+          { type: 'bullet', text: '<strong>Information:</strong> should rarely be used — only against very straightforward opponents. Information bets increase variance unnecessarily.' },
+          { type: 'warn', text: 'Bets need a purpose. If you can\'t clearly state why you\'re betting, don\'t bet.' },
+        ]
+      },
+      {
+        id: 'ch3s2', label: 'Value Betting',
+        content: [
+          { type: 'bullet', text: 'When value betting, constantly think about whether your opponent can call with a hand you beat' },
+          { type: 'bullet', text: 'Sometimes check with the best hand if he\'ll fold all worse hands and call with all better hands' },
+          { type: 'bullet', text: 'Before each river value bet ask: how often will he fold a better hand? How often will he call with a worse hand? How often will he call with a better hand?' },
+          { type: 'bullet', text: 'Be more prone to value bet in position — opponent has already given you information. OOP: tend to check weak made hands.' },
+          { type: 'bullet', text: 'Your value bet must work 50%+ of the time against opponent\'s calling range to be profitable. Higher in tournaments because you can\'t reload.' },
+          { type: 'warn', text: 'Avoid thin value bets in tournaments, especially as stacks get shorter. When value betting middle pair, most second-best hands will fold.' },
+        ]
+      },
+      {
+        id: 'ch3s3', label: 'Bluffing Principles',
+        content: [
+          { type: 'bullet', text: 'Your bluffs must tell a believable story — figure out a betting line your opponent believes to be strong' },
+          { type: 'bullet', text: 'Big extravagant bluffs are not necessary in tournaments — too risky. Total bluffs should be used rarely.' },
+          { type: 'bullet', text: 'Before bluffing: determine what hands they are willing to fold' },
+          { type: 'bullet', text: 'Balance semi-bluffs by playing strong hands the same way' },
+          { type: 'bullet', text: 'Do not bluff against multiple opponents on the river' },
+          { type: 'bullet', text: 'Bad players don\'t bluff too often — avoid bluffing against them, value bet instead' },
+          { type: 'warn', text: 'Total bluffs are unnecessary in tournaments. Too many great spots available to justify risking chips with 0 equity. When your opponent takes a line that doesn\'t make sense, call him down.' },
+        ]
+      },
+      {
+        id: 'ch3s4', label: 'Semi-Bluffs & Floating',
+        content: [
+          { type: 'bullet', text: 'Semi-bluffs are very profitable and balance your range while allowing you to apply pressure — their power relies on fold equity' },
+          { type: 'bullet', text: 'Sometimes you have to give up on a semi-bluff if it misses on the river — don\'t force a bluff that makes little sense' },
+          { type: 'bullet', text: '<strong>To float</strong> = call a bet with the intention of picking up the pot on a later street. Floating is very tough to play against.' },
+          { type: 'bullet', text: 'Float the flop, bet the turn when opponent checks — wins the pot most of the time. Axx is a good flop to float.' },
+          { type: 'bullet', text: '<strong>Delayed float:</strong> float the flop, check the turn, bet the river' },
+          { type: 'warn', text: 'Floating OOP is usually a terrible play. Floating does not commit you to making a move on the turn — fold if he bets again unless you have the right hand. If you suspect you\'re being floated: check-call with decent made hands, fire multiple barrels with bluffs.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch4', num: 'CH 4', title: 'Position & Image',
+    sections: [
+      {
+        id: 'ch4s1', label: 'Position Principles',
+        content: [
+          { type: 'key', text: 'You maximize profit when playing in position. Most of your edge in poker tournaments comes from playing in position against weaker opponents.' },
+          { type: 'bullet', text: 'If you know your opponent will C-bet every time but only bet the turn when he hits: call in position every time' },
+          { type: 'bullet', text: 'If you know your opponent will only check-raise with top pair or better: check-call with middle pair, fold all worse, call down with good hands' },
+          { type: 'bullet', text: 'The other main use of position: get an extra value bet from your hand. Being in position allows you to set your own price.' },
+          { type: 'bullet', text: 'Weak players lose because they constantly play better players out of position — reraise more than you call in position preflop' },
+          { type: 'warn', text: 'Do not raise too many hands OOP. You play larger pots in position and smaller pots OOP. Stay out of the way against good opponents — just carve up weaker players.' },
+        ]
+      },
+      {
+        id: 'ch4s2', label: 'Image & Table Perception',
+        content: [
+          { type: 'bullet', text: 'Image = how everyone at the table perceives you. It will constantly change throughout a tournament.' },
+          { type: 'bullet', text: 'Fold for 30 minutes then raise once — you\'ll get respect even if you were loose before. Raise the next 5 hands after that — expect pushback.' },
+          { type: 'key', text: 'A good strategy: create a loose image early in a tournament, then tighten up later. The optimal image is the opposite of your playing style.' },
+          { type: 'bullet', text: 'Take advantage of your perceived range when you have a monster hand' },
+          { type: 'bullet', text: 'Pay close attention to all hands that go to showdown — this is where you gather the most reliable information' },
+          { type: 'bullet', text: 'Cultivate your image tailored to your specific table — not all players pay attention to image' },
+          { type: 'warn', text: 'Don\'t fall prey to variance by thinking an opponent suddenly changed his style — could just be a good or bad run of cards.' },
+        ]
+      },
+      {
+        id: 'ch4s3', label: 'Managing Your Image',
+        content: [
+          { type: 'bullet', text: '<strong>Things that make you appear tighter:</strong> quiet at the table · make decisions quickly · keep chip stack tidy (few small denomination chips) · blend in' },
+          { type: 'bullet', text: '<strong>Advertising play</strong> (deliberately showing a loose hand): do not use with less than 75bb — the risk isn\'t worth it' },
+          { type: 'bullet', text: 'If you have a loose image, players will eventually try to outplay you — figure out which ones will and which ones won\'t' },
+          { type: 'bullet', text: 'As soon as opponents think they\'ve figured you out, switch things up' },
+          { type: 'key', text: 'One of the best things in poker: win a large pot with no showdown. Tricking opponents into bluffing might be the most profitable thing you do at the table.' },
+          { type: 'bullet', text: 'Go out of your way to pick up pots when players fold far too often preflop — they\'ll think you\'re a maniac and pay you off when you have a hand. Once your image becomes a maniac, nit up a bit.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch5', num: 'CH 5', title: 'Flop Play',
+    sections: [
+      {
+        id: 'ch5s1', label: 'C-Betting Guidelines',
+        content: [
+          { type: 'bullet', text: 'Folding to C-bets too often is one of the biggest leaks in a weak player\'s game. Every player misses the flop 2/3 of the time.' },
+          { type: 'bullet', text: 'C-bet ½ pot on dry boards. C-bet ¾ pot on wet boards. As stacks get shorter: bet less (2/5 to 2/3 pot).' },
+          { type: 'key', text: 'Bet any time the board comes one high card and two low cards. Very few situations where you should not C-bet.' },
+          { type: 'bullet', text: 'Tend to check behind on boards that connect with your opponent\'s range and not yours — balance by occasionally checking back strong hands too' },
+          { type: 'bullet', text: '<strong>Delayed C-bet:</strong> he checks twice, fire on the turn. Out of position: fire on the turn if checked to twice.' },
+          { type: 'bullet', text: 'If good players are floating your C-bets: consider double-barreling with weak hands and checking strong hands to induce turn bluffs' },
+          { type: 'warn', text: 'When raised or check-raised on the turn, opponents usually show up with strong hands — don\'t pay them off. Weak players raise and check-raise with top pair; if your opponent is willing to put a lot of money in, you\'re probably beat.' },
+        ]
+      },
+      {
+        id: 'ch5s2', label: 'Pot Control',
+        content: [
+          { type: 'bullet', text: 'Play hands with reverse implied odds cautiously or not at all: A-9, Q-8, K-10, J-6' },
+          { type: 'bullet', text: '<strong>Great hands for pot control:</strong> way ahead or way behind of opponent\'s range — top pair bad kicker, second pair good kicker' },
+          { type: 'bullet', text: 'When you pot control with top pair, don\'t be afraid to call down — your hand looks weak and induces bluffs on later streets' },
+          { type: 'bullet', text: 'The less likely your hand is to be beaten by an overcard, the more likely checking behind is a good option' },
+          { type: 'key', text: 'Pot control medium strength hands to avoid playing giant pots with hands that lose value as the pot grows. As stacks shrink, pot control becomes less relevant — top pair goes up dramatically in value.' },
+          { type: 'warn', text: 'If your opponent bets the flop and check-raises the turn, be prepared to fold anything but a monster. Don\'t throw good money after bad.' },
+        ]
+      },
+      {
+        id: 'ch5s3', label: 'Donk Betting & Leading',
+        content: [
+          { type: 'key', text: 'Almost always raise donk bets. If he calls, be prepared to fire on every street.' },
+          { type: 'bullet', text: 'Weak players tend to donk bet with marginal hands: middle or bottom pair with good kicker, top pair bad kicker — reraise relentlessly. If someone tells you they have a weak hand, convince them you have a monster.' },
+          { type: 'bullet', text: 'Do not lead OOP with a weak made hand — you\'ll find yourself in a tough spot later. Make leads against players who are quick to give up on their hands.' },
+          { type: 'bullet', text: 'Balance leading with sets and strong semi-bluffs so you can reraise and put opponents in tricky spots' },
+          { type: 'warn', text: 'Do not check-raise the flop as a total bluff. Check-raising strong draws OOP has merit but you must commit to betting most turns whether you hit or miss.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch6', num: 'CH 6', title: 'Turn Play',
+    sections: [
+      {
+        id: 'ch6s1', label: 'Turn Betting Principles',
+        content: [
+          { type: 'bullet', text: 'By the turn you determine whether your opponent can be made to fold or plans to go all the way' },
+          { type: 'bullet', text: 'If opponent checks to you on the turn: usually bet if you don\'t have decent showdown value. Bet when you have a monster hand.' },
+          { type: 'bullet', text: 'Double barrel (flop and turn): make sure you have a plan for when your opponent sticks around' },
+          { type: 'key', text: 'Fire a second barrel if the turn drastically changes the board — bet like you hit the straight or flush even if you didn\'t. In general, bet your hand like you have the nuts.' },
+          { type: 'bullet', text: 'If the preflop aggressor C-bets, you call, he checks the turn: bet almost every time unless A, K, or Q shows up. Make sure he\'s not a pot controller.' },
+          { type: 'warn', text: 'Do not continue betting the turn with marginal hands such as top pair — if raised on the turn you\'ll struggle to know where you stand. Pot control these hands.' },
+        ]
+      },
+      {
+        id: 'ch6s2', label: 'Turn with Draws & Difficult Spots',
+        content: [
+          { type: 'bullet', text: 'Sometimes just call with a draw on the turn — don\'t want to be pushed off your hand on a good draw' },
+          { type: 'bullet', text: 'If opponent could put in a raise to force you off your draw: just call. If you can go all-in and have fold equity: tend to push.' },
+          { type: 'bullet', text: 'Check-raise the turn when you have a strong draw. Check-raising the turn makes any hand look strong regardless of previous action — don\'t overuse it.' },
+          { type: 'bullet', text: 'When you call the turn with a draw: figure out which cards are good to bluff on the river if opponent checks. Target big overcards and cards completing draws.' },
+          { type: 'key', text: 'The weaker your draw, the more passively you should play. It\'s alright to give up on a pot from time to time — risking a lot of chips on a bluff is usually bad in tournaments.' },
+          { type: 'warn', text: 'Against most opponents, when raised on the turn, fold unless you have a monster. Professionals win by picking up small pots and only putting a lot of money in with big hands.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch7', num: 'CH 7', title: 'River Play',
+    sections: [
+      {
+        id: 'ch7s1', label: 'Value Betting the River',
+        content: [
+          { type: 'bullet', text: 'By the river you can usually put opponent on a fairly tight range — be careful against good players who use deception throughout' },
+          { type: 'bullet', text: 'Check OOP with top pair bad kicker or middle pair good kicker — most opponents will only call with better' },
+          { type: 'key', text: 'In position with a weak made hand, assuming at least one earlier street was checked: value bet the river relentlessly.' },
+          { type: 'bullet', text: 'Tend to check medium strength hands OOP (high overpair, bottom two pair) — pot control and turn hand into a bluff catcher' },
+          { type: 'bullet', text: 'Against better players: tend to bet 3/5 of the pot on any river regardless of hand — value bets and bluffs at the same size' },
+          { type: 'bullet', text: 'If you make the nuts and think opponent has a strong 2nd-best hand: consider overbetting the pot. Use rarely — not necessary to balance.' },
+          { type: 'warn', text: 'Raising a weak flush on the river is usually a mistake — you\'ll only get called with better. Blocking bets (small bets for information): against good players, generally a bad play — better used as a bluff catcher.' },
+        ]
+      },
+      {
+        id: 'ch7s2', label: 'River Bluffing',
+        content: [
+          { type: 'bullet', text: 'Bluff the smallest amount to get the job done. Bluff more in small pots — if no one has shown interest by the river, take a stab.' },
+          { type: 'bullet', text: 'Large extravagant bluffs are almost always -EV in tournaments. Do not bluff against multiple opponents on the river.' },
+          { type: 'key', text: 'To determine how much to bluff: assess opponent\'s range, what percentage of those hands will call, then bet an amount that induces folding a large percentage of decent hands.' },
+          { type: 'bullet', text: 'If opponent has shown interest by calling flop and turn — especially with any showdown value — check behind on the river' },
+          { type: 'bullet', text: 'One of the best ways to gain chips: induce opponent to bluff when they have nothing. Make a bet that makes your hand look mediocre — either gets calls from weaker hands or induces a raise bluff.' },
+          { type: 'warn', text: 'Bluffing in giant pots is usually a bad idea. Total bluffs are unnecessary in tournaments.' },
+        ]
+      },
+      {
+        id: 'ch7s3', label: 'Calling & Raising the River',
+        content: [
+          { type: 'bullet', text: 'Call if pot odds exceed the odds that you have the best hand, even if you\'ll lose most of the time. Fold once these calls start taking a large amount of your stack.' },
+          { type: 'bullet', text: 'Breakeven decisions are not good enough in tournaments — you need an edge' },
+          { type: 'bullet', text: 'When a player raises the river: almost always a very premium hand. If board is dry and you\'ve shown decent aggression: assume a monster.' },
+          { type: 'bullet', text: 'A standard opponent raises the river as a bluff when they flopped a strong draw and missed — if the board has 1 or more missed draws, be more likely to call with a weaker hand' },
+          { type: 'key', text: 'When you have a strong hand that\'s almost certainly ahead but could be behind: raise the river for value and fold to a reraise. Most players will never reraise the river as a bluff.' },
+          { type: 'warn', text: 'When there is a bet and a call on the river before the action gets to you: need a much stronger hand to call than against just one opponent.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch8', num: 'CH 8', title: 'Playing by Stack Depth',
+    sections: [
+      {
+        id: 'ch8s1', label: 'Mid-Stack (125–40bb)',
+        content: [
+          { type: 'bullet', text: 'Implied odds shrink as stacks shrink — drawing hands go down in value. Be willing to stack off with two pair unless the board is scary.' },
+          { type: 'bullet', text: 'Play strong hands more aggressively preflop. With ~75bb, it\'s ok to get QQ and AK all-in preflop.' },
+          { type: 'bullet', text: 'Rarely call reraises OOP with speculative hands. Reraise to 2.5–2.75x at this stack depth.' },
+          { type: 'key', text: 'This does not mean abandon aggression — just pick your spots more selectively. Float in position with a wide range against players who raise wide, C-bet often, and play straight forward after that.' },
+          { type: 'bullet', text: 'As stacks get shorter, some players fold too often — attack their blinds from any position. Attack their raises but fold to reraises.' },
+          { type: 'warn', text: 'Pot control medium strength hands as stacks diminish. Anticipate what is going to happen throughout the hand before you decide how to play it.' },
+        ]
+      },
+      {
+        id: 'ch8s2', label: 'The 60–40bb Zone',
+        content: [
+          { type: 'bullet', text: 'Do not get your stack all-in with a weak holding. Don\'t get fancy.' },
+          { type: 'bullet', text: 'Tighten up preflop calling range. Still attack blinds and preflop raises of weak players.' },
+          { type: 'bullet', text: 'Can\'t fear going broke with solid holdings preflop or after the flop. Never fold a monster hand before the flop once you start to get short.' },
+          { type: 'key', text: 'Be willing to push a wider range against aggressive players. If you have at least 40% equity and fold equity, pushing is usually a great play.' },
+          { type: 'warn', text: 'One of the biggest mistakes: put a lot of chips in the pot then fold when opponent turns up aggression. Avoid this with pot control. Don\'t talk yourself into being pot committed when you have a clear fold.' },
+        ]
+      },
+      {
+        id: 'ch8s3', label: 'Short Stack (40–27bb)',
+        content: [
+          { type: 'bullet', text: '40–27bb is the toughest stack size to play — you have too many chips for powerful short-stack strategies' },
+          { type: 'bullet', text: 'Primary goal: acquire more chips to return to normal play. Use chips between 25–40bb to gamble selectively — get out of this range.' },
+          { type: 'bullet', text: 'You can no longer raise small pairs and suited connectors from early position (occasionally for balance only). No need for preflop deception.' },
+          { type: 'key', text: 'If you steal 2 sets of blinds per orbit and get away with reraising every once in a while, your stack will steadily grow. Read your table — that dictates your play.' },
+          { type: 'bullet', text: 'The 27–40bb range is perfect for the all-in squeeze — need some equity, need a loose preflop raiser, watch out for slow plays' },
+          { type: 'warn', text: 'Seldom reraise at this stack size — if pushed on, you\'ll be getting break-even odds. Do not talk yourself into being pot committed when you have a clear fold.' },
+        ]
+      },
+      {
+        id: 'ch8s4', label: 'Very Short Stack (Under 25bb)',
+        content: [
+          { type: 'bullet', text: '15–25bb: every time you enter a pot, your opponent should be concerned about a shove. A balanced range makes you very tough to play against.' },
+          { type: 'bullet', text: 'Open 2.25–2.5x below 30bb. Below 15bb: push any hand you\'re going to play rather than raising small.' },
+          { type: 'key', text: 'Folding too much is worse than shoving too much as a short stack. The more antes eat into your stack, the less fold equity you have — push more.' },
+          { type: 'bullet', text: 'Push against opponents who raise wide but call fairly tight. Push only with premium hands if you think you\'ll be called often; push wide if you\'ll rarely be called.' },
+          { type: 'bullet', text: 'When someone pushes in front of you: figure out their range and your hand\'s equity against it. Need 40% equity to break even.' },
+          { type: 'bullet', text: 'Call early position pushes much tighter than late position pushes' },
+          { type: 'warn', text: 'With less than 5bb: rarely fold when getting great odds — most hands have 33% equity against any range. If no fold equity, need a fairly strong hand to get it in.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch9', num: 'CH 9', title: 'Player Type Adjustments',
+    sections: [
+      {
+        id: 'ch9s1', label: 'Tight Player Who Won\'t Fold Top Pair',
+        content: [
+          { type: 'bullet', text: 'Most common weak player: fairly tight, refuses to fold top pair. Usually min-raises the flop, revealing hand strength.' },
+          { type: 'bullet', text: 'They adjust bet sizes to hand strength — if they bet small, raise with a wide range. Respect their large bets.' },
+          { type: 'bullet', text: 'Bet your strong hands weakly and your bluff hands strongly — they view others\' bets the way they themselves bet' },
+          { type: 'key', text: 'Play lots of pots in position against this player and apply maximum pressure whenever you can represent or beat what they represent. They will pay off bets they shouldn\'t.' },
+        ]
+      },
+      {
+        id: 'ch9s2', label: 'Weak Passive Players',
+        content: [
+          { type: 'bullet', text: 'Play few hands and usually check their entire range. Rarely fold if they have any piece of the flop.' },
+          { type: 'bullet', text: 'While they act weak, their range may actually be strong — be careful before value betting thinly' },
+          { type: 'bullet', text: 'Bet smaller than normal against these players. If they call a flop bet, check down weaker holdings and value bet relentlessly with made hands.' },
+          { type: 'key', text: 'Middle pair with good kicker goes up significantly in value against weak passive players — can often value bet on every street. Tight passive players play straight forward: bet flop when they check, consider giving up if they call.' },
+        ]
+      },
+      {
+        id: 'ch9s3', label: 'Super Aggressive Players',
+        content: [
+          { type: 'bullet', text: 'Super aggressive: bets whenever checked to, raises or calls every bet. C-bet often against these opponents to keep them spewing chips.' },
+          { type: 'bullet', text: 'After C-bet, be willing to check-call with a strong hand. Check and call down to induce bluffs — give them rope to hang themselves.' },
+          { type: 'bullet', text: 'If aggressive player is to your LEFT: play tighter and more aggressively. Make sure a lot of money goes in the pot with your premium hands.' },
+          { type: 'key', text: 'Against players who try to run over the table: sit back and wait for a hand you\'re willing to play for a large pot.' },
+          { type: 'bullet', text: 'Aggressive floaters float with a wide range — value bet thinly on flop and turn, check the river to induce a bluff' },
+          { type: 'warn', text: 'There is nothing wrong with playing a tight, aggressive game from time to time. Against a good aggressive player with position on you: just play a fairly tight, solid game.' },
+        ]
+      },
+      {
+        id: 'ch9s4', label: 'Default Strategy & Adjustments',
+        content: [
+          { type: 'key', text: 'Default strategy: loose, aggressive. If people are playing back at you: tighten up. As soon as opponents think they\'ve figured you out: switch things up.' },
+          { type: 'bullet', text: 'Most of your profit will come from your opponents\' mistakes, not your fancy play' },
+          { type: 'bullet', text: 'No player uses a completely unexploitable game plan — if you observe and identify how each player plays, you can make profitable adjustments' },
+          { type: 'bullet', text: 'Tend to stay out of the way against good opponents. Don\'t do anything too fancy against good players — just carve up the weaker players.' },
+          { type: 'bullet', text: 'Against players trying to run over the table: sit back and wait for a hand you\'re willing to play for a large pot' },
+          { type: 'warn', text: 'Watch for players who go out of their way to put a play on you. Figure out who is likely to make a move before it happens — you will win a big pile of chips.' },
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ch10', num: 'CH 10', title: 'Advanced Bluffing',
+    sections: [
+      {
+        id: 'ch10s1', label: 'Advanced C-Bet Strategy',
+        content: [
+          { type: 'key', text: 'You are not playing a specific hand against your opponents — you are playing your range. The worse your hand plays after the flop, the more inclined you should be to 3-bet it preflop.' },
+          { type: 'bullet', text: '<strong>C-bet sizing by stack depth:</strong> 100bb → 65% pot · 30bb → 35% pot. Wetter board = C-bet larger. As pot grows and stacks shrink: C-bet a smaller proportion.' },
+          { type: 'bullet', text: 'C-bet on all boards where you have a range advantage. If opponent has range advantage: check is ideal.' },
+          { type: 'bullet', text: 'In 3-bet and 4-bet pots: be more inclined to C-bet with your entire range' },
+          { type: 'bullet', text: 'Against straight forward players who check the flop: strongly consider betting your entire range. Drastically widen your range against these players.' },
+          { type: 'key', text: 'Each player connects with the board about 35% of the time. Against straight forward opponents you can blindly C-bet 50% of the pot and profit.' },
+          { type: 'warn', text: 'Do not C-bet every single time or only when you connect. As the flop becomes more multiway, C-betting becomes less ideal. With 3 opponents on the flop: play straight forward.' },
+        ]
+      },
+      {
+        id: 'ch10s2', label: 'Floating & Leading',
+        content: [
+          { type: 'bullet', text: '<strong>Floating best used in position.</strong> From OOP: stick to leading and check-raising instead.' },
+          { type: 'bullet', text: 'Best players to float: those who C-bet frequently but only bet the turn with their best hands' },
+          { type: 'bullet', text: 'If opponent will C-bet flop and turn 100% of their range: float the flop and raise the turn — steal the pot ~70% of the time when he doesn\'t have a strong hand' },
+          { type: 'bullet', text: 'In general: call most C-bets with strong hands, all pairs with 5+ outs to improve, and any reasonable draw including gutshot with overcards' },
+          { type: 'key', text: 'Floating makes it difficult for opponent to C-bet profitably with a wide range while disguising your hand strength. The plan is to win on later streets with aggression.' },
+          { type: 'bullet', text: '<strong>Leading (donk betting):</strong> best when you have a good idea of how opponent will react. Lead when you have range advantage, or when checking leads to difficult spots. Ideal with a stack between 30–45bb.' },
+          { type: 'warn', text: 'Floating the turn is not a great idea unless you have a great read on your opponent. If opponent only bets the turn again with premium hands: fold to that bet.' },
+        ]
+      },
+      {
+        id: 'ch10s3', label: 'Turn & River Bluff Continuations',
+        content: [
+          { type: 'bullet', text: 'Continue barreling the turn when the board gets better for your range or scarier for your opponent' },
+          { type: 'bullet', text: 'Lead the turn from the blinds when a middle card pairs — range advantage shifts in your favor' },
+          { type: 'bullet', text: 'When the turn completes a flush and the preflop aggressor keeps betting: consider raising with hands not good enough to call (bottom pair, floats) — not against straight forward players' },
+          { type: 'bullet', text: 'When opponent\'s river range is capped and yours isn\'t: consider an overbet (100–200%)' },
+          { type: 'key', text: 'Powerful amateur-crushing betting line: small flop bet (33%) → small turn bet (25%) → huge river bet (125%). Forces folds from players calling flop and turn planning to fold the river.' },
+          { type: 'bullet', text: 'Bluff the river when a scary card comes. 3-barrel opponents who likely have marginal hands they can fold to sustained aggression.' },
+          { type: 'warn', text: 'Don\'t bluff if: opponent has a strong range · opponent rarely folds to aggression · opponent thinks you\'re overly wild and is adjusting · you have recently applied heavy aggression. Wait. As soon as opponents think they have a read on you, reverse your tactics and crush them.' },
+        ]
+      }
+    ]
+  }
+];
+
+function buildDrawer() {
+  const nav = document.getElementById('drawerNav');
+  nav.innerHTML = DATA.map(ch => `
+    <div class="nav-chapter" id="nav-${ch.id}">
+      <button class="nav-chapter-btn" onclick="toggleNavChapter('${ch.id}', event)">
+        <span class="nav-ch-num">${ch.num}</span>
+        <span class="nav-ch-title">${ch.title}</span>
+        <span class="nav-ch-arrow">›</span>
+      </button>
+      <div class="nav-sections" id="navsec-${ch.id}">
+        ${ch.sections.map(s => `<a class="nav-section-link" href="#${s.id}" onclick="navClick(event,'${s.id}')">${s.label}</a>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function toggleNavChapter(id, e) {
+  const btn = e.currentTarget;
+  const sec = document.getElementById('navsec-' + id);
+  const isOpen = sec.classList.contains('open');
+  document.querySelectorAll('.nav-sections.open').forEach(el => el.classList.remove('open'));
+  document.querySelectorAll('.nav-chapter-btn.expanded').forEach(el => el.classList.remove('expanded'));
+  if (!isOpen) { sec.classList.add('open'); btn.classList.add('expanded'); }
+}
+
+function navClick(e, sectionId) {
+  e.preventDefault();
+  closeDrawer();
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      const section = el.closest('.section');
+      if (section && !section.classList.contains('open')) section.classList.add('open');
+    }
+  }, 320);
+}
+
+function buildMain() {
+  document.getElementById('main').innerHTML = DATA.map(ch => `
+    <article class="chapter" id="${ch.id}">
+      <div class="chapter-header">
+        <span class="chapter-num">${ch.num}</span>
+        <h2 class="chapter-title">${ch.title}</h2>
+      </div>
+      ${ch.sections.map(s => buildSection(s)).join('')}
+    </article>`).join('');
+}
+
+function buildSection(s) {
+  const items = s.content.map(c => {
+    if (c.type === 'bullet') return `<li class="bullet-item">${c.text}</li>`;
+    if (c.type === 'key') return `<li class="key-rule-item"><div class="key-rule">${c.text}</div></li>`;
+    if (c.type === 'warn') return `<li class="warn-item"><div class="warn-rule">${c.text}</div></li>`;
+    return '';
+  }).join('');
+  return `
+    <div class="section scroll-target" id="${s.id}">
+      <button class="section-toggle" onclick="toggleSection(this)">
+        <span class="section-label">${s.label}</span>
+        <span class="section-arrow">▾</span>
+      </button>
+      <div class="section-body"><ul class="bullets">${items}</ul></div>
+    </div>`;
+}
+
+function toggleSection(btn) { btn.closest('.section').classList.toggle('open'); }
+
+function toggleExpandAll() {
+  const btn = document.getElementById('expandAllBtn');
+  const all = document.querySelectorAll('.section');
+  const allOpen = [...all].every(s => s.classList.contains('open'));
+  if (allOpen) {
+    all.forEach(s => s.classList.remove('open'));
+    btn.textContent = 'EXPAND ALL'; btn.classList.remove('all-expanded');
+  } else {
+    all.forEach(s => s.classList.add('open'));
+    btn.textContent = 'COLLAPSE ALL'; btn.classList.add('all-expanded');
+  }
+}
+
+const hamburger = document.getElementById('hamburger');
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('overlay');
+hamburger.addEventListener('click', () => drawer.classList.contains('open') ? closeDrawer() : openDrawer());
+overlay.addEventListener('click', closeDrawer);
+
+function openDrawer() {
+  drawer.classList.add('open'); overlay.classList.add('active');
+  hamburger.classList.add('open'); document.body.style.overflow = 'hidden';
+}
+function closeDrawer() {
+  drawer.classList.remove('open'); overlay.classList.remove('active');
+  hamburger.classList.remove('open'); document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', () => { buildDrawer(); buildMain(); });
+</script>
+</body>
+</html>
