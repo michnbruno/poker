@@ -263,40 +263,6 @@
     opacity: 0.6;
   }
 
-  .nav-divider {
-    padding: 10px 18px 6px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 4px;
-  }
-  .nav-divider::before, .nav-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-  .nav-divider span {
-    font-family: var(--mono);
-    font-size: 9px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text3);
-    white-space: nowrap;
-    padding: 0 4px;
-  }
-
-  .chapter-num.supplemental {
-    background: var(--surface2);
-    color: var(--text2);
-    border-color: var(--border);
-  }
-  .nav-ch-num.supplemental {
-    background: var(--surface2);
-    color: var(--text2);
-    border-color: var(--border);
-  }
-
   /* ── MAIN ── */
   main {
     padding-top: calc(var(--header-h) + 16px);
@@ -900,117 +866,15 @@ const DATA = [
         ]
       }
     ]
-  },
-  { isDivider: true, label: 'Additional Acevedo Content' },
-  {
-    id: 'add1', num: 'ADD 1', title: 'Playing vs 3-Bets', supplemental: true,
-    sections: [
-      {
-        id: 'add1s1', label: 'Key Decision Factors',
-        content: [
-          { type: 'key', text: 'When facing a 3-bet, run through this checklist before deciding:' },
-          { type: 'bullet', text: '<strong>Your position</strong> + how strong is your opening range?' },
-          { type: 'bullet', text: '<strong>Villain\'s position</strong> + how strong is their 3-betting range?' },
-          { type: 'bullet', text: '<strong>Active players remaining:</strong> more players = villain less likely bluffing, fewer hands needed to remain unexploitable' },
-          { type: 'bullet', text: '<strong>The bet size:</strong> is it an all-in? Do you have fold equity to 4-bet? Do you have the right odds to call given ranges?' },
-          { type: 'bullet', text: '<strong>Relative position:</strong> if you call, will you be IP or OOP post-flop?' },
-          { type: 'bullet', text: '<strong>Range morphology:</strong> is their 3-betting range polarized or linear? How well does your hand play vs their range post-flop?' },
-          { type: 'bullet', text: '<strong>Risk premium:</strong> how deep in the tournament? High or low risk premium vs this villain — and theirs vs you?' },
-          { type: 'bullet', text: '<strong>Future game situation:</strong> if you call and lose, where does your stack land? Do you lose raise/fold ability? Does winning make you chip leader?' },
-          { type: 'bullet', text: '<strong>Bluffing likelihood:</strong> is villain likely over-bluffing or under-bluffing in this specific spot?' },
-          { type: 'warn', text: 'If calling is close to 0 cEV, chances are it will be slightly losing in $EV terms due to risk premium. When in doubt, tournament life tips the balance toward folding.' },
-        ]
-      },
-      {
-        id: 'add1s2', label: 'Response by Stack Depth',
-        content: [
-          { type: 'bullet', text: '<strong>Short stack (15–25bb):</strong> average fold to 3-bet ~55%, call ~45%. Earlier position of the 3-bettor = tighter defense. Calling range = top hands by equity vs their rejamming range.' },
-          { type: 'bullet', text: '<strong>Mid stack (25–40bb):</strong> only 4-bet size is all-in. 4-bet all-in with hands good vs calling ranges but not great playability (mid-small pairs, offsuit Ax, small suited Ax). Call with AA/KK, suited connectors, suited broadways, big suited Ax.' },
-          { type: 'bullet', text: '<strong>Big stack (60–80bb):</strong> all-in 4-bets disappear, replaced by non-all-in 4-bets. Calling frequency increases significantly — big incentive to call and play post-flop, especially IP.' },
-          { type: 'key', text: 'When facing a 3-bet IP: 4-bet more with short stacks, call more with deep stacks. When OOP: fold more to 3-bets with deep stacks, call more with short stacks.' },
-          { type: 'bullet', text: 'EP could play a non-4-betting strategy vs the blinds at deep stacks — polarized blind 3-betting ranges make 4-betting from EP less attractive because the solver prefers to flat call in position' },
-          { type: 'warn', text: 'By understanding WHY the solver chooses the decision it does, you make better in-game decisions. Don\'t just memorize outcomes — understand the logic behind them.' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'add2', num: 'ADD 2', title: 'Position Value & OOP Adjustments', supplemental: true,
-    sections: [
-      {
-        id: 'add2s1', label: 'The Value of Position',
-        content: [
-          { type: 'key', text: 'The value of position equals 5–10% of the pot. A concrete, useful calibration for how much IP is worth in any given hand.' },
-          { type: 'bullet', text: 'The more streets left to play, the bigger IP\'s information advantage becomes — IP acts last on each street, gaining more information every time' },
-          { type: 'bullet', text: 'Deeper stacks benefit IP and hurt OOP — positional disadvantage compounds with stack depth and SPR' },
-          { type: 'bullet', text: 'Being IP with a weak range is not as bad as being OOP with a weak range' },
-          { type: 'key', text: 'Strong ranges over-realize their equity even when OOP. Weak ranges heavily under-realize their equity when OOP. Range strength magnifies or dampens position\'s effect.' },
-          { type: 'bullet', text: 'Suit isomorphism reduces 22,100 possible flops to 1,755 strategically unique flops — flops sharing characteristics are played similarly. Learn flop families, not every individual board.' },
-          { type: 'bullet', text: 'When stacks are deep: range balance matters more than raw equity. When stacks are shallow: raw equity dominates. Adjust accordingly.' },
-        ]
-      },
-      {
-        id: 'add2s2', label: 'OOP Strategic Adjustments',
-        content: [
-          { type: 'bullet', text: 'OOP tends to use larger bet sizes than IP — either to get more folds immediately, or if called, to reduce SPR and minimize positional disadvantage on later streets' },
-          { type: 'bullet', text: 'On boards where OOP has a large range disadvantage: check 100% of the time. Avoids giving IP information and preserves range balance.' },
-          { type: 'key', text: 'Checking 100% OOP on boards with a large range disadvantage is not weakness — it\'s correct GTO strategy. High card boards (Axx, Kxx): IP dominates, OOP checks 100%.' },
-          { type: 'bullet', text: 'Low/connected boards: equity distributions more symmetric — OOP has more playability and can consider betting or check-raising' },
-          { type: 'bullet', text: 'Runout coverage is essential for both betting and checking ranges — without it, opponents can exploit you across future streets' },
-          { type: 'warn', text: 'The deeper the stacks, the greater the need for well-balanced ranges on every street. A checking range that is easily exploitable on the flop compounds into a disaster by the river.' },
-        ]
-      }
-    ]
-  },
-  {
-    id: 'add3', num: 'ADD 3', title: 'MTT Pre-Flop Heuristics by Stack', supplemental: true,
-    sections: [
-      {
-        id: 'add3s1', label: 'Stack Depth Principles',
-        content: [
-          { type: 'bullet', text: '<strong>Under 10bb:</strong> play push/fold exclusively — no other strategy is viable' },
-          { type: 'bullet', text: '<strong>Under 25bb (rejam region):</strong> always min-raise rather than a larger size. Raise-folding from a short stack is expensive. Min-raise lets you fold the worst hands in your range.' },
-          { type: 'bullet', text: '<strong>30–35bb+:</strong> threat of getting rejammed lowers. Can increase raise size to 2.3x comfortably.' },
-          { type: 'key', text: 'RFI bet sizing has minimal impact on your bottom line as long as sizes are reasonable. The more important factor: know before you raise whether your hand is raise-fold or raise-call. Know if it works better as an open shove or a min-raise.' },
-          { type: 'bullet', text: '<strong>EP and MP:</strong> no direct correlation between stack depth and VPIP — ranges peak at 25–30bb then stagnate or shrink as stacks deepen. Positional disadvantage in early positions becomes more pronounced with deeper stacks.' },
-          { type: 'warn', text: 'Always be mindful of your situation and avoid autopiloting. The equilibrium is constantly shifting. The best MTT players know when to pass on small edges and when to push them.' },
-        ]
-      },
-      {
-        id: 'add3s2', label: 'SB Strategy by Depth',
-        content: [
-          { type: 'bullet', text: '<strong>10–15bb:</strong> play push/limp/fold from SB. Push hands with good blockers, high equity vs calling ranges but bad post-flop EqR (66–22), and high equity hands that struggle to call a jam (98s–56s).' },
-          { type: 'bullet', text: '<strong>Limping range at 15bb:</strong> high equity hands that can call an all-in (77+), broadways, suited Ax/Kx, and hands like Q2/J8o/T4s that have fine equity in limped pots but don\'t mind limp-folding vs a jam' },
-          { type: 'bullet', text: '<strong>25bb:</strong> push range largely disappears. Strategy becomes raise/limp/fold. Raise range is polarized: hands that can call a jam (66+, A8o+, A5s+, strongest broadways) + blocker hands with decent playability (KJo, J8s, 74s).' },
-          { type: 'bullet', text: '<strong>40bb:</strong> no all-in range. Most hands played as a mixed strategy — strongest hands raised more often than limped; weaker hands limped more often than raised.' },
-          { type: 'key', text: 'The SB gets to VPIP the largest number of hands when folded to (up to 83%). Use this advantage — but have a clear plan for each hand type and size correctly for the depth.' },
-        ]
-      },
-      {
-        id: 'add3s3', label: 'BN & EP Depth Adjustments',
-        content: [
-          { type: 'bullet', text: '<strong>BN 10–12bb:</strong> prefers push/limp/fold — no min-raises. Min-raising becomes important at 15–30bb for post-flop play in position.' },
-          { type: 'bullet', text: '<strong>BN 30bb+:</strong> no longer open shoves. At 40bb, stops limping in favor of a raise/fold strategy. Positional advantage increases with depth: 10bb VPIP = 38.9%, 80bb VPIP = 55.5%.' },
-          { type: 'bullet', text: '<strong>BN 25bb:</strong> folds small pocket pairs (22, 33) — too deep to open jam, too shallow for correct implied odds. Same applies from all positions except SB.' },
-          { type: 'bullet', text: '<strong>EP/MP general:</strong> shallower stacks → focus on high equity hands and good blockers. Deeper stacks → focus shifts to hands that can make the nuts or nut draws.' },
-          { type: 'key', text: 'As stacks get deeper from EP/MP, offsuit broadways decrease in value and suited connectors become more relevant. Range shifts toward nut potential over raw high card value.' },
-          { type: 'warn', text: 'From MP and EP, the deeper the stack, the more positional disadvantage hinders equity realization. Don\'t open as wide from early position just because you have chips — deep stacks amplify the cost of being OOP.' },
-        ]
-      }
-    ]
   }
 ];
 
 function buildDrawer() {
   const nav = document.getElementById('drawerNav');
-  nav.innerHTML = DATA.map(ch => {
-    if (ch.isDivider) {
-      return `<div class="nav-divider"><span>${ch.label}</span></div>`;
-    }
-    return `
+  nav.innerHTML = DATA.map(ch => `
     <div class="nav-chapter" id="nav-${ch.id}">
       <button class="nav-chapter-btn" onclick="toggleNavChapter('${ch.id}', event)">
-        <span class="nav-ch-num${ch.supplemental ? ' supplemental' : ''}">${ch.num}</span>
+        <span class="nav-ch-num">${ch.num}</span>
         <span class="nav-ch-title">${ch.title}</span>
         <span class="nav-ch-arrow">›</span>
       </button>
@@ -1019,8 +883,8 @@ function buildDrawer() {
           <a class="nav-section-link" href="#${s.id}" onclick="navClick(event, '${s.id}')">${s.label}</a>
         `).join('')}
       </div>
-    </div>`;
-  }).join('');
+    </div>
+  `).join('');
 }
 
 function toggleNavChapter(id, e) {
@@ -1052,17 +916,15 @@ function navClick(e, sectionId) {
 
 function buildMain() {
   const main = document.getElementById('main');
-  main.innerHTML = DATA.map(ch => {
-    if (ch.isDivider) return '';
-    return `
+  main.innerHTML = DATA.map(ch => `
     <article class="chapter" id="${ch.id}">
       <div class="chapter-header">
-        <span class="chapter-num${ch.supplemental ? ' supplemental' : ''}">${ch.num}</span>
+        <span class="chapter-num">${ch.num}</span>
         <h2 class="chapter-title">${ch.title}</h2>
       </div>
       ${ch.sections.map(s => buildSection(s)).join('')}
-    </article>`;
-  }).join('');
+    </article>
+  `).join('');
 }
 
 function buildSection(s) {
